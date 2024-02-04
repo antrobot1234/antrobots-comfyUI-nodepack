@@ -54,7 +54,7 @@ class CropImageAndMask:
         mask_scaled = scale_to_image(mask_in, image_in)
         box = mask_to_box(mask_scaled)
         #scale the box to image
-        box = scale_box_with_padding(box, horizontal_padding, vertical_padding, image_in.shape[2], image_in.shape[1],padding)
+        box = scale_box_with_padding(box, horizontal_padding, vertical_padding, image_in.shape[2], image_in.shape[1],global_padding)
         #crop the image and mask
         image_out = crop_with_box(image_in, box)
         mask_out = crop_with_box(mask_in, box)
