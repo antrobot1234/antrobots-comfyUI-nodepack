@@ -18,21 +18,21 @@ class CropImageAndMask:
             "required": {
                 "image_in": ("IMAGE",),
                 "mask_in": ("MASK",),
-                "minimum_width": ("INT", {
+                "vertical_padding": ("INT", {
                     "default": 0,
                     "min": 0,
                     "max": MAXSIZE,
                     "step": 1,
                     "display": "number",
                 }),
-                "minimum_height": ("INT", {
+                "horizontal_padding": ("INT", {
                     "default": 0,
                     "min": 0,
                     "max": MAXSIZE,
                     "step": 1,
                     "display": "number",
                 }),
-                "padding": ("INT", {
+                "global_padding": ("INT", {
                     "default": 0,
                     "min": 0,
                     "max": MAXSIZE,
@@ -46,7 +46,7 @@ class CropImageAndMask:
     FUNCTION = "crop"
     CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
 
-    def crop(self,image_in: torch.Tensor, mask_in: torch.Tensor, minimum_width: int, minimum_height: int,padding:int) -> (torch.Tensor, torch.Tensor):
+    def crop(self,image_in: torch.Tensor, mask_in: torch.Tensor,vertical_padding:int, horizontal_padding:int, global_padding:int) -> (torch.Tensor, torch.Tensor):
         #convert the mask into a region
         if mask_in.sum() == 0:
             return (image_in, mask_in)
@@ -54,7 +54,7 @@ class CropImageAndMask:
         mask_scaled = scale_to_image(mask_in, image_in)
         box = mask_to_box(mask_scaled)
         #scale the box to image
-        box = scale_box_to_minimum_size(box, minimum_width, minimum_height, image_in.shape[2], image_in.shape[1],padding)
+        box = scale_box_with_padding(box, horizontal_padding, vertical_padding, image_in.shape[2], image_in.shape[1],padding)
         #crop the image and mask
         image_out = crop_with_box(image_in, box)
         mask_out = crop_with_box(mask_in, box)

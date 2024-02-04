@@ -54,6 +54,27 @@ def scale_box_to_minimum_size(box, min_width, min_height, max_x, max_y,padding):
     y2 = min(max_y, (y2 + max(0,min_height - height) // 2) + half_padding)
 
     return torch.Tensor([x1, y1, x2, y2]).to(torch.int32)
+def scale_box_with_padding(box, horizontal_padding, vertical_padding, max_x, max_y, padding):
+    """
+    Scales the input box while applying the specified padding to the sides of the box.
+
+    Args:
+        box: A tuple representing the coordinates of the box in the format (x1, y1, x2, y2).
+        horizontal_padding: The amount of padding to be applied to the left and right sides of the box.
+        vertical_padding: The amount of padding to be applied to the top and bottom sides of the box.
+        max_x: The maximum x-coordinate for the box.
+        max_y: The maximum y-coordinate for the box.
+        padding: The amount of padding to be applied to the box.
+
+    Returns:
+        torch.Tensor: A tensor containing the scaled coordinates of the box in the format [x1, x2, y1, y2].
+    """
+    x1, y1, x2, y2 = box
+    x1 = min(max(0, x1 - horizontal_padding) - padding, max_x)
+    x2 = min(max(0, x2 + horizontal_padding) + padding, max_x)
+    y1 = min(max(0, y1 - vertical_padding) - padding, max_y)
+    y2 = min(max(0, y2 + vertical_padding) + padding, max_y)
+    return torch.Tensor([x1, y1, x2, y2]).to(torch.int32)
 
 def convert_img_to_bcWH(img:torch.Tensor) -> torch.Tensor:
     """
