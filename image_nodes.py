@@ -80,7 +80,7 @@ class ScaleImageToSize:
         final_size = int(min(image_in.shape[1], image_in.shape[2])*scale)
         image_out = scale_to_size(image_in, final_size)
         return (image_out,)
-class pasteWithMasks:
+class PasteWithMasks:
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -142,7 +142,7 @@ class AlphaComposite:
 
 NODE_CLASS_MAPPINGS: dict = {"crop": CropImageAndMask,
                              "scale": ScaleImageToSize,
-                             "paste": pasteWithMasks,
+                             "paste": PasteWithMasks,
                              "composite": AlphaComposite}
                 
 NODE_DISPLAY_NAME_MAPPINGS: dict = {"crop": "Crop Image and Mask",
