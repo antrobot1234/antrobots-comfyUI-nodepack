@@ -76,9 +76,9 @@ def scale_box_with_padding(box, horizontal_padding, vertical_padding, max_x, max
     y2 = min(max(0, y2 + vertical_padding) + padding, max_y)
     return torch.Tensor([x1, y1, x2, y2]).to(torch.int32)
 
-def convert_img_to_bcWH(img:torch.Tensor) -> torch.Tensor:
+def convert_img_to_bcHW(img:torch.Tensor) -> torch.Tensor:
     """
-    Function to convert an image tensor from BWHC (batch, width, height, channels) format to BCWH (batch, channels, width, height) format.
+    Function to convert an image tensor from BWHC (batch, height, width, channels) format to BCWH (batch, channels, height, width) format.
     
     Args:
         img (torch.Tensor): The input image tensor in BWHC format.
@@ -87,9 +87,9 @@ def convert_img_to_bcWH(img:torch.Tensor) -> torch.Tensor:
         torch.Tensor: The converted image tensor in BCWH format.
     """
     return img.permute(0, 3, 1, 2)
-def convert_img_to_bWHc(img:torch.Tensor) -> torch.Tensor:
+def convert_img_to_bHWc(img:torch.Tensor) -> torch.Tensor:
     """
-    Convert the input image tensor from BCWH (batch, channels, width, height) format to BWHC (batch, width, height, channels) format.
+    Convert the input image tensor from BCWH (batch, channels, height, width) format to BWHC (batch, height, width, channels) format.
 
     Args:
         img (torch.Tensor): The input image tensor in BCWH format.
@@ -111,8 +111,8 @@ def scale_to_image(image_scale:torch.Tensor, image_reference:torch.Tensor) -> to
     - torch.Tensor, the scaled image
     """
     if(len(image_scale.shape) == 4):
-        image_scale = convert_img_to_bcWH(image_scale)
-        return convert_img_to_bWHc(TF.resize(image_scale, (image_reference.shape[1], image_reference.shape[2])))
+        image_scale = convert_img_to_bcHW(image_scale)
+        return convert_img_to_bHWc(TF.resize(image_scale, (image_reference.shape[1], image_reference.shape[2])))
     return TF.resize(image_scale, (image_reference.shape[1], image_reference.shape[2]))
 def scale_to_size(image_scale:torch.Tensor, desired_size:int) -> torch.Tensor:
     """
@@ -126,8 +126,8 @@ def scale_to_size(image_scale:torch.Tensor, desired_size:int) -> torch.Tensor:
     - torch.Tensor, the scaled image
     """
     if(len(image_scale.shape) == 4):
-        image_scale = convert_img_to_bcWH(image_scale)
-        return convert_img_to_bWHc(TF.resize(image_scale, desired_size))
+        image_scale = convert_img_to_bcHW(image_scale)
+        return convert_img_to_bHWc(TF.resize(image_scale, desired_size))
     return TF.resize(image_scale, desired_size)
 def crop_with_box(image:torch.Tensor, box:torch.Tensor) -> torch.Tensor:
     """
@@ -142,9 +142,9 @@ def crop_with_box(image:torch.Tensor, box:torch.Tensor) -> torch.Tensor:
     """
     xmin, ymin, xmax, ymax = box
     if(len(image.shape) == 4):
-        image = convert_img_to_bcWH(image)
+        image = convert_img_to_bcHW(image)
         cropped = TF.crop(image, ymin, xmin, ymax - ymin, xmax - xmin)
-        return convert_img_to_bWHc(cropped)
+        return convert_img_to_bHWc(cropped)
     return TF.crop(image, ymin, xmin, ymax - ymin, xmax - xmin)
 def scale_to_box(image:torch.Tensor, box:torch.Tensor) -> torch.Tensor:
     """
@@ -159,8 +159,8 @@ def scale_to_box(image:torch.Tensor, box:torch.Tensor) -> torch.Tensor:
     """
     x1, y1, x2, y2 = box
     if(len(image.shape) == 4):
-        image = convert_img_to_bcWH(image)
-        return convert_img_to_bWHc(TF.resize(image, (y2 - y1, x2 - x1)))
+        image = convert_img_to_bcHW(image)
+        return convert_img_to_bHWc(TF.resize(image, (y2 - y1, x2 - x1)))
     return TF.resize(image, (y2 - y1, x2 - x1))
 def mask_to_box(mask:torch.Tensor) -> torch.Tensor:
     """
@@ -188,7 +188,7 @@ def convert_img_to_pil(image:torch.Tensor) -> Image.Image:
         PIL.Image.Image: The converted PIL image.
     """
     if(len(image.shape) == 4):
-        image = convert_img_to_bcWH(image)
+        image = convert_img_to_bcHW(image)
         return TF.to_pil_image(image[0])
     return TF.to_pil_image(image[0])
 def convert_pil_to_img(image:Image.Image) -> torch.Tensor:
@@ -203,7 +203,7 @@ def convert_pil_to_img(image:Image.Image) -> torch.Tensor:
     """
     tensor = TF.to_tensor(image).unsqueeze(0)
     if len(tensor.shape) == 4:
-        tensor = convert_img_to_bWHc(tensor)
+        tensor = convert_img_to_bHWc(tensor)
     return tensor
 def alpha_composite(image_source:torch.Tensor, mask_source:torch.Tensor, image_dest:torch.Tensor, mask_dest:torch.Tensor, dest = (0,0), source = (0,0)) -> torch.Tensor:
     #convert to numpy if needed
