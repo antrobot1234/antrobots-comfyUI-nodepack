@@ -2,6 +2,17 @@ import torch
 import torchvision.transforms.functional as TF
 from torchvision.ops import masks_to_boxes
 import PIL.Image as Image
+def is_mask_empty(mask: torch.Tensor) -> bool:
+    """
+    Check if a mask is empty.
+
+    Args:
+        mask (torch.Tensor): The mask to be checked.
+
+    Returns:
+        bool: True if the mask is empty, False otherwise.
+    """
+    return mask.sum() == 0
 def box_to_tuple(box: torch.Tensor) -> tuple:
     """
     Convert a box represented as a torch.Tensor to a tuple.
