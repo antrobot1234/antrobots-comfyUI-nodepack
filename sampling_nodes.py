@@ -41,7 +41,7 @@ class KSamplerWithDenoise:
         if return_with_leftover_noise:
             force_full_denoise = False
         disable_noise = False
-        if add_noise:
+        if not add_noise:
             disable_noise = True
         return common_ksampler(model, noise_seed, steps, cfg, sampler_name, scheduler, positive, negative, latent_image, denoise=denoise, disable_noise=disable_noise, start_step=start_at_step, last_step=end_at_step, force_full_denoise=force_full_denoise)
 
