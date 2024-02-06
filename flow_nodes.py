@@ -4,7 +4,7 @@ from .any import Any
 any = Any("*")
 
 from .globals import DIRECTORY_NAME
-
+NODE_CLASS_MAPPINGS = {}
 GROUP_NAME = "flow-control"
 class Swap: 
     @classmethod
@@ -25,7 +25,4 @@ class Swap:
             return val2, val1
         else:
             return val1, val2
-        
-NODE_CLASS_MAPPINGS: dict = {
-    "Swap": Swap
-}
+NODE_CLASS_MAPPINGS["Swap"] = Swap
