@@ -23,7 +23,7 @@ def set_return_helper(type_name,type_parameters={},type_label=None):
                      "DICT":("DICT",)
                     }
                 } 
-def get_return_helper(type_name,default_required,default_parameters=None):
+def get_return_helper(type_name,default_parameters=None,type_label=None,default_required = False):
     if default_parameters is None: insert = (type_name,)
     else: insert = (type_name,default_parameters)
     out =  {"required":
@@ -32,12 +32,13 @@ def get_return_helper(type_name,default_required,default_parameters=None):
                      "DICT":("DICT",)
                     }}
     if default_required:
-        out["required"][str(type_name)] = insert
+        out["required"][str(type_label)] = insert
     else:
         out["optional"] = {}
-        out["optional"][str(type_name)] = insert
+        out["optional"][str(type_label)] = insert
     return out
 def set_class_constructor(class_name,pretty_name,type_value,type_parameters=None,type_label=None,type_class=None,type_checker=None):
+    if type_label is None: type_label = type_value
     @classmethod
     def INPUT_TYPES(s):
         return set_return_helper(type_value,type_parameters,type_label)
@@ -62,7 +63,7 @@ def get_class_constructor(class_name,pretty_name,type_value,default_parameters =
     if type_label is None: type_label = type_value
     @classmethod
     def INPUT_TYPES(s):
-        return get_return_helper(type_value,default_required,default_parameters)
+        return get_return_helper(type_value,default_parameters,type_label,default_required)
     def get(self, DICT,default=None, **kwargs):
         key = get_first_value(kwargs.values())
         if key is None: return (default,)
@@ -106,6 +107,7 @@ NODE_DISPLAY_NAME_MAPPINGS["MergeDicts"] = "Merge Dicts"
 
 
 set_class_constructor("SetDict","Set Dict",any,type_label="any")
+set_class_constructor("setDictDict","Set Nested Dict","DICT",type_label="DICT Value",type_class=dict)
 set_class_constructor("setDictInt","Set Dict Int","INT",{"default":0},type_class=int)
 set_class_constructor("setDictFloat","Set Dict Float","FLOAT",{"default":0.0,"step":0.01},type_class=float)
 set_class_constructor("setDictBool","Set Dict Bool","BOOLEAN",{"default":False},type_class=bool)
@@ -116,7 +118,7 @@ set_class_constructor("setDictLatent","Set Dict Latent","LATENT",type_checker=is
 #set_class_constructor("setDictModel","Set Dict Model","MODEL") #check if model?
 
 get_class_constructor("GetDict","Get Dict",any,type_label="any")
-get_class_constructor("getDictDict","Get Nested Dict","DICT",type_label="DICT",type_class=dict)
+get_class_constructor("getDictDict","Get Nested Dict","DICT",type_label="Default",type_class=dict)
 get_class_constructor("getDictInt","Get Dict Int","INT",{"default":0},type_class=int)
 get_class_constructor("getDictFloat","Get Dict Float","FLOAT",{"default":0.0,"step":0.01},type_class=float)
 get_class_constructor("getDictBool","Get Dict Bool","BOOLEAN",{"default":False},type_class=bool)
