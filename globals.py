@@ -1,4 +1,8 @@
+import sys
 DIRECTORY_NAME = "antrobots-ComfyUI-nodepack"
+
+MAXSIZE = sys.maxsize
+MINSIZE = -sys.maxsize
 
 from .flow_nodes import NODE_CLASS_MAPPINGS as swapClassMappings
 

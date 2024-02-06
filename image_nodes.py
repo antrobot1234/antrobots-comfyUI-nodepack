@@ -5,11 +5,10 @@ from math import ceil
 from .utils.image_utils import *
 from PIL import Image
 
-from .globals import DIRECTORY_NAME
+from .globals import DIRECTORY_NAME, MAXSIZE, MINSIZE
 GROUP_NAME = "image-handling"
 
-MAXSIZE = sys.maxsize
-MINSIZE = -sys.maxsize
+
 
 class CropImageAndMask:
     @classmethod
