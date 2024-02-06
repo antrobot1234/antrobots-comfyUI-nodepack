@@ -2,7 +2,7 @@ import sys
 import os
 import nodes
 
-from .globals import DIRECTORY_NAME, COMFY_DIR
+from utils.globals import DIRECTORY_NAME, COMFY_DIR, NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
 
 
 sys.path.append("COMFY_DIR")
@@ -44,5 +44,5 @@ class KSamplerWithDenoise:
             disable_noise = True
         return common_ksampler(model, noise_seed, steps, cfg, sampler_name, scheduler, positive, negative, latent_image, denoise=denoise, disable_noise=disable_noise, start_step=start_at_step, last_step=end_at_step, force_full_denoise=force_full_denoise)
 
-NODE_CLASS_MAPPINGS = {"sample": KSamplerWithDenoise}
-NODE_DISPLAY_NAME_MAPPINGS = {"sample": "KSampler (advanced) with denoise"}
+NODE_CLASS_MAPPINGS["sample"] = KSamplerWithDenoise
+NODE_DISPLAY_NAME_MAPPINGS["sample"] = "KSampler (Advanced) with Denoise"
