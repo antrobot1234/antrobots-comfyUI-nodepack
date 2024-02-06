@@ -2,6 +2,44 @@ import torch
 import torchvision.transforms.functional as TF
 from torchvision.ops import masks_to_boxes
 import PIL.Image as Image
+def empty_image() -> torch.Tensor:
+    """
+    Create an empty image tensor.
+
+    Returns:
+        torch.Tensor: An empty image tensor with shape (1, 16, 16, 3).
+    """
+    return torch.zeros((1, 16, 16, 3))
+def empty_mask() -> torch.Tensor:
+    """
+    Create an empty mask tensor.
+
+    Returns:
+        torch.Tensor: An empty mask tensor with shape (1, 16, 16).
+    """
+    return torch.zeros((1, 16, 16))
+def is_image(image: torch.Tensor) -> bool:
+    """
+    Check if an image is valid.
+
+    Args:
+        image (torch.Tensor): The image to be checked.
+
+    Returns:
+        bool: True if the image is valid, False otherwise.
+    """
+    return type(image) == torch.Tensor and len(image.shape) == 4 and image.shape[3] == 3
+def is_mask(mask: torch.Tensor) -> bool:
+    """
+    Check if a mask is valid.
+
+    Args:
+        mask (torch.Tensor): The mask to be checked.
+
+    Returns:
+        bool: True if the mask is valid, False otherwise.
+    """
+    return type(mask) == torch.Tensor and len(mask.shape) == 3
 def is_mask_empty(mask: torch.Tensor) -> bool:
     """
     Check if a mask is empty.
