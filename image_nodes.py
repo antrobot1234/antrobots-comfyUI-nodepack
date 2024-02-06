@@ -5,7 +5,9 @@ from math import ceil
 from .utils.image_utils import *
 from PIL import Image
 
-from .globals import DIRECTORY_NAME, MAXSIZE, MINSIZE
+from .globals import DIRECTORY_NAME, MAXSIZE, MINSIZE, COMFY_DIR
+sys.path.append("COMFY_DIR")
+import nodes
 GROUP_NAME = "image-handling"
 
 
@@ -134,7 +136,17 @@ class AlphaComposite:
     def composite(self, image_source: torch.Tensor, image_dest: torch.Tensor,mask_source: torch.Tensor = None, mask_dest: torch.Tensor = None, x_offset: int=0, y_offset: int=0) -> torch.Tensor:
         dest = (x_offset,y_offset)
         return (alpha_composite(image_source, mask_source, image_dest, mask_dest, dest),)  
-
+class PreviewMask(nodes.PreviewImage):
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": {
+                             "mask": ("MASK",),
+                             }}
+    CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
+    def save_images(self, mask: torch.Tensor) -> torch.Tensor:
+        mask_image = mask_to_image(mask)
+        super().save_images(mask_image)
+        
 
 
 
@@ -143,7 +155,8 @@ class AlphaComposite:
 NODE_CLASS_MAPPINGS: dict = {"crop": CropImageAndMask,
                              "scale": ScaleImageToSize,
                              "paste": PasteWithMasks,
-                             "composite": AlphaComposite}
+                             "composite": AlphaComposite,
+                             "preview_mask": PreviewMask}
                 
 NODE_DISPLAY_NAME_MAPPINGS: dict = {"crop": "Crop Image and Mask",
                                     "scale": "Scale Image to Size",

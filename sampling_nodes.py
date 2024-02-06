@@ -1,14 +1,13 @@
 import sys
 import os
 import nodes
-my_dir = os.path.dirname(os.path.abspath(__file__))
-custom_nodes_dir = os.path.abspath(os.path.join(my_dir, '..'))
-comfy_dir = os.path.abspath(os.path.join(my_dir, '..', '..'))
 
-sys.path.append("comfy_dir")
+from .globals import DIRECTORY_NAME, COMFY_DIR
+
+
+sys.path.append("COMFY_DIR")
 import comfy.samplers
 from nodes import common_ksampler
-from .globals import DIRECTORY_NAME
 
 GROUP_NAME = "sampling"
 

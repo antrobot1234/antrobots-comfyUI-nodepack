@@ -62,6 +62,17 @@ def is_mask_empty(mask: torch.Tensor) -> bool:
         bool: True if the mask is empty, False otherwise.
     """
     return mask.sum() == 0
+def mask_to_image(mask: torch.Tensor) -> torch.Tensor:
+    """
+    Convert a mask to an image.
+
+    Args:
+        mask (torch.Tensor): The mask to be converted.
+
+    Returns:
+        torch.Tensor: The converted image.
+    """
+    return torch.stack([mask,mask,mask],3)
 def box_to_tuple(box: torch.Tensor) -> tuple:
     """
     Convert a box represented as a torch.Tensor to a tuple.
