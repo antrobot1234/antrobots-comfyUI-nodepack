@@ -5,7 +5,9 @@ from math import ceil
 from .utils.image_utils import *
 from PIL import Image
 
-from utils.globals import DIRECTORY_NAME, MAXSIZE, MINSIZE, COMFY_DIR, NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
+from .utils.globals import DIRECTORY_NAME, MAXSIZE, MINSIZE, COMFY_DIR
+NODE_CLASS_MAPPINGS = {}
+NODE_DISPLAY_NAME_MAPPINGS = {}
 sys.path.append("COMFY_DIR")
 import nodes
 GROUP_NAME = "image-handling"

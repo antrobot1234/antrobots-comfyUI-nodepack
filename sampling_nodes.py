@@ -2,8 +2,9 @@ import sys
 import os
 import nodes
 
-from utils.globals import DIRECTORY_NAME, COMFY_DIR, NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
-
+from .utils.globals import DIRECTORY_NAME, COMFY_DIR
+NODE_CLASS_MAPPINGS = {}
+NODE_DISPLAY_NAME_MAPPINGS = {}
 
 sys.path.append("COMFY_DIR")
 import comfy.samplers

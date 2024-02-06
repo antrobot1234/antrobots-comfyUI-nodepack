@@ -1,4 +1,6 @@
-from .utils.globals import DIRECTORY_NAME, NODE_DISPLAY_NAME_MAPPINGS, NODE_CLASS_MAPPINGS, Any
+from .utils.globals import DIRECTORY_NAME, Any
+NODE_CLASS_MAPPINGS = {}
+NODE_DISPLAY_NAME_MAPPINGS = {}
 GROUP_NAME = "dicts"
 
 any = Any("*")
@@ -114,6 +116,7 @@ set_class_constructor("setDictLatent","Set Dict Latent","LATENT",type_checker=is
 #set_class_constructor("setDictModel","Set Dict Model","MODEL") #check if model?
 
 get_class_constructor("GetDict","Get Dict",any,type_label="any")
+get_class_constructor("getDictDict","Get Nested Dict","DICT",type_label="DICT",type_class=dict)
 get_class_constructor("getDictInt","Get Dict Int","INT",{"default":0},type_class=int)
 get_class_constructor("getDictFloat","Get Dict Float","FLOAT",{"default":0.0,"step":0.01},type_class=float)
 get_class_constructor("getDictBool","Get Dict Bool","BOOLEAN",{"default":False},type_class=bool)

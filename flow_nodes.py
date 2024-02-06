@@ -1,6 +1,9 @@
 
-from .utils.globals import DIRECTORY_NAME, NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS, Any
+from .utils.globals import DIRECTORY_NAME, Any
+NODE_CLASS_MAPPINGS = {}
+NODE_DISPLAY_NAME_MAPPINGS = {}
 GROUP_NAME = "flow-control"
+any = Any("*")
 class Swap: 
     @classmethod
     def INPUT_TYPES(s):
