@@ -1,5 +1,6 @@
-from .globals import DIRECTORY_NAME, MAXSIZE, MINSIZE
+from .utils.globals import DIRECTORY_NAME, MAXSIZE, MINSIZE
 NODE_CLASS_MAPPINGS = {}
+NODE_DISPLAY_NAME_MAPPINGS = {}
 GROUP_NAME = "dicts"
 from .any import Any
 any = Any("*")
@@ -36,7 +37,7 @@ def get_return_helper(type_name,default_required,default_parameters=None):
         out["optional"] = {}
         out["optional"][str(type_name)] = insert
     return out
-def set_class_constructor(class_Name,pretty_name,type_value,type_parameters=None,type_label=None,type_class=None,type_checker=None):
+def set_class_constructor(class_name,pretty_name,type_value,type_parameters=None,type_label=None,type_class=None,type_checker=None):
     @classmethod
     def INPUT_TYPES(s):
         return set_return_helper(type_value,type_parameters,type_label)
@@ -53,10 +54,11 @@ def set_class_constructor(class_Name,pretty_name,type_value,type_parameters=None
         "FUNCTION": "set",
         "CATEGORY": DIRECTORY_NAME+'/'+GROUP_NAME+"/set"
     }
-    class_out = type(class_Name,(object,),attributes)
-    NODE_CLASS_MAPPINGS[pretty_name] = class_out
+    class_out = type(class_name,(object,),attributes)
+    NODE_CLASS_MAPPINGS[class_name] = class_out
+    NODE_DISPLAY_NAME_MAPPINGS[class_name] = pretty_name
     return class_out
-def get_class_constructor(class_Name,pretty_name,type_value,default_parameters = None,type_label=None,type_class=None,type_checker=None,default_replacer=None, default_required = False):
+def get_class_constructor(class_name,pretty_name,type_value,default_parameters = None,type_label=None,type_class=None,type_checker=None,default_replacer=None, default_required = False):
     if type_label is None: type_label = type_value
     @classmethod
     def INPUT_TYPES(s):
@@ -80,8 +82,9 @@ def get_class_constructor(class_Name,pretty_name,type_value,default_parameters =
         "FUNCTION": "get",
         "CATEGORY": DIRECTORY_NAME+'/'+GROUP_NAME+"/get"
     }
-    class_out = type(class_Name,(object,),attributes)
-    NODE_CLASS_MAPPINGS[pretty_name] = class_out
+    class_out = type(class_name,(object,),attributes)
+    NODE_CLASS_MAPPINGS[class_name] = class_out
+    NODE_DISPLAY_NAME_MAPPINGS[class_name] = pretty_name
     return class_out
 class mergeDicts:
     @classmethod
@@ -98,7 +101,8 @@ class mergeDicts:
     def merge(self, DICT1, DICT2):
         DICT1.update(DICT2)
         return (DICT1,)
-NODE_CLASS_MAPPINGS["Merge Dicts"] = mergeDicts
+NODE_CLASS_MAPPINGS["MergeDicts"] = mergeDicts
+NODE_DISPLAY_NAME_MAPPINGS["MergeDicts"] = "Merge Dicts"
 
 
 set_class_constructor("SetDict","Set Dict",any,type_label="any")

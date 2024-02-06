@@ -3,8 +3,9 @@ from .any import Any
 
 any = Any("*")
 
-from .globals import DIRECTORY_NAME
+from .utils.globals import DIRECTORY_NAME
 NODE_CLASS_MAPPINGS = {}
+NODE_DISPLAY_NAME_MAPPINGS = {}
 GROUP_NAME = "flow-control"
 class Swap: 
     @classmethod
@@ -26,3 +27,4 @@ class Swap:
         else:
             return val1, val2
 NODE_CLASS_MAPPINGS["Swap"] = Swap
+NODE_DISPLAY_NAME_MAPPINGS["Swap"] = "Swap"

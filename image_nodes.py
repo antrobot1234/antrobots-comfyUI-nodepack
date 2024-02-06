@@ -5,7 +5,7 @@ from math import ceil
 from .utils.image_utils import *
 from PIL import Image
 
-from .globals import DIRECTORY_NAME, MAXSIZE, MINSIZE, COMFY_DIR
+from utils.globals import DIRECTORY_NAME, MAXSIZE, MINSIZE, COMFY_DIR
 sys.path.append("COMFY_DIR")
 import nodes
 GROUP_NAME = "image-handling"
@@ -145,7 +145,7 @@ class PreviewMask(nodes.PreviewImage):
     CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
     def save_images(self, mask: torch.Tensor) -> torch.Tensor:
         mask_image = mask_to_image(mask)
-        super().save_images(mask_image)
+        return super().save_images(mask_image)
         
 
 
@@ -161,4 +161,5 @@ NODE_CLASS_MAPPINGS: dict = {"crop": CropImageAndMask,
 NODE_DISPLAY_NAME_MAPPINGS: dict = {"crop": "Crop Image and Mask",
                                     "scale": "Scale Image to Size",
                                     "paste": "Paste with Masks",
-                                    "composite": "Alpha Composite"}
+                                    "composite": "Alpha Composite",
+                                    "preview_mask": "Preview Mask"}
