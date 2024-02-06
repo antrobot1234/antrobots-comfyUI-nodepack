@@ -5,7 +5,7 @@ from math import ceil
 from .utils.image_utils import *
 from PIL import Image
 
-from utils.globals import DIRECTORY_NAME, MAXSIZE, MINSIZE, COMFY_DIR
+from utils.globals import DIRECTORY_NAME, MAXSIZE, MINSIZE, COMFY_DIR, NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
 sys.path.append("COMFY_DIR")
 import nodes
 GROUP_NAME = "image-handling"
@@ -152,14 +152,14 @@ class PreviewMask(nodes.PreviewImage):
 
 
 
-NODE_CLASS_MAPPINGS: dict = {"crop": CropImageAndMask,
+NODE_CLASS_MAPPINGS.update({"crop": CropImageAndMask,
                              "scale": ScaleImageToSize,
                              "paste": PasteWithMasks,
                              "composite": AlphaComposite,
-                             "preview_mask": PreviewMask}
+                             "preview_mask": PreviewMask})
                 
-NODE_DISPLAY_NAME_MAPPINGS: dict = {"crop": "Crop Image and Mask",
+NODE_DISPLAY_NAME_MAPPINGS.update({"crop": "Crop Image and Mask",
                                     "scale": "Scale Image to Size",
                                     "paste": "Paste with Masks",
                                     "composite": "Alpha Composite",
-                                    "preview_mask": "Preview Mask"}
+                                    "preview_mask": "Preview Mask"})
