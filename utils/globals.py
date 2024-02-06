@@ -7,6 +7,8 @@ COMFY_DIR = os.path.abspath(os.path.join(CUSTOM_NODES_DIR, '..', '..'))
 MAXSIZE = sys.maxsize
 MINSIZE = -sys.maxsize
 
+NODE_CLASS_MAPPINGS = {}
+NODE_DISPLAY_NAME_MAPPINGS = {}
 class Any(str):
     def __eq__(self, __value: object) -> bool:
         return True
