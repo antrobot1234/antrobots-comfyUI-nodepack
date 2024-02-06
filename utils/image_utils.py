@@ -40,6 +40,17 @@ def is_mask(mask: torch.Tensor) -> bool:
         bool: True if the mask is valid, False otherwise.
     """
     return type(mask) == torch.Tensor and len(mask.shape) == 3
+def is_latent(latent: torch.Tensor) -> bool:
+    """
+    Check if a latent is valid.
+
+    Args:
+        latent (torch.Tensor): The latent to be checked.
+
+    Returns:
+        bool: True if the latent is valid, False otherwise.
+    """
+    return True #TODO learn how latents are stored to determine if the input is a latent
 def is_mask_empty(mask: torch.Tensor) -> bool:
     """
     Check if a mask is empty.
