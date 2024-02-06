@@ -21,3 +21,18 @@ This node is used to scale an image to a desired size.  It takes an image, a des
     
 ### Alpha Composite:
 This node is used to composite a source image and a destination image using alpha blending. It takes a source image, a destination image, a source mask, a destination mask, an x offset, and a y offset as inputs. It pastes the source image onto the destination image with offsets, treating the respective masks as alpha channels. Both source mask and destination mask are optional. If either is not provided, the respective image will be pasted as is.
+
+##Dict Nodes
+These are various nodes that can pack information into dicts to be sent around and parsed as an alternative workflow to piping.
+### Set Dict
+This is the core of how these nodes work. any value put into this node will be packaged into a `DICT` labeled as `key` and sent out. A `dict` can optionally be passed in, in which case it will instead append the value to the input dict.
+## Get Dict
+This node takes in a `DICT`, a `key`, and a `default` value as inputs. if `key` is found in the `DICT`, it will pass it out to the `*` output. otherwise, `default` will be used
+
+## Get Dict **TYPE**
+This entry describes all of the nodes that follow this format, as their core functionality is the same. These nodes behave similar to thee standard Get Dict, with two exceptions.
+1.  `default` is optional. if default is not provided, a standard default for the type will be provided automatically.
+2. inputs are validated with their type. If the input is not of the correct type, `default` will be used instead.
+
+## Get Dict Unsafe
+This is a special variant of `get dict` with NO `default`. If the input does not exist, it will return `None`. This can be useful if you are using a lot of custom types and don't want to populate all the defaults. Note that if the key does not exist, most workflows will likely break, so use with caution.
