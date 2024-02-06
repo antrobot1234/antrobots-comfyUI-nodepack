@@ -1,9 +1,5 @@
 
-from .any import Any
-
-any = Any("*")
-
-from .utils.globals import DIRECTORY_NAME, NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
+from .utils.globals import DIRECTORY_NAME, NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS, Any
 GROUP_NAME = "flow-control"
 class Swap: 
     @classmethod

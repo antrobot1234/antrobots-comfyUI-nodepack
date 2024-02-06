@@ -1,6 +1,6 @@
-from .utils.globals import DIRECTORY_NAME, NODE_DISPLAY_NAME_MAPPINGS, NODE_CLASS_MAPPINGS
+from .utils.globals import DIRECTORY_NAME, NODE_DISPLAY_NAME_MAPPINGS, NODE_CLASS_MAPPINGS, Any
 GROUP_NAME = "dicts"
-from .any import Any
+
 any = Any("*")
 from .utils.image_utils import empty_image, empty_mask, is_mask, is_image, is_latent
 import torch
