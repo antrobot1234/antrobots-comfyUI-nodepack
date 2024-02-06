@@ -23,15 +23,18 @@ def set_return_helper(type_name,type_parameters={},type_label=None):
                     }
                 } 
 def get_return_helper(type_name,default_required,default_parameters=None):
+    if default_parameters is None: insert = (type_name,)
+    else: insert = (type_name,default_parameters)
     out =  {"required":
                     {
                      "key":("STRING",{"multiline":False}),
                      "DICT":("DICT",)
                     }}
     if default_required:
-        out["required"].update(default_parameters)
+        out["required"][str(type_name)] = insert
     else:
-        out["optional"].update(default_parameters)
+        out["optional"] = {}
+        out["optional"][str(type_name)] = insert
     return out
 def set_class_constructor(class_Name,pretty_name,type_value,type_parameters=None,type_label=None,type_class=None,type_checker=None):
     @classmethod
@@ -80,6 +83,24 @@ def get_class_constructor(class_Name,pretty_name,type_value,default_parameters =
     class_out = type(class_Name,(object,),attributes)
     NODE_CLASS_MAPPINGS[pretty_name] = class_out
     return class_out
+class mergeDicts:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required":
+                    {
+                     "DICT1":("DICT",),
+                     "DICT2":("DICT",)
+                    }
+        }
+    RETURN_TYPES = ("DICT",)
+    RETURN_NAMES = ("DICT",)
+    FUNCTION = "merge"
+    def merge(self, DICT1, DICT2):
+        DICT1.update(DICT2)
+        return (DICT1,)
+NODE_CLASS_MAPPINGS["Merge Dicts"] = mergeDicts
+
+
 set_class_constructor("SetDict","Set Dict",any,type_label="any")
 set_class_constructor("setDictInt","Set Dict Int","INT",{"default":0},type_class=int)
 set_class_constructor("setDictFloat","Set Dict Float","FLOAT",{"default":0.0,"step":0.01},type_class=float)
