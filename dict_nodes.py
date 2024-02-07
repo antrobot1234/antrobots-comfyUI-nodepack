@@ -6,7 +6,7 @@ GROUP_NAME = "dicts"
 any = Any("*")
 from .utils.image_utils import empty_image, empty_mask, is_mask, is_image, is_latent
 import torch
-#SET DICT SECTION
+#SET Dict SECTION
 def get_first_value(values):
     for value in values:
         return value
@@ -20,7 +20,7 @@ def set_return_helper(type_name,type_parameters={},type_label=None):
                      },
                 "optional":
                     {
-                     "DICT":("DICT",)
+                     "Dict":("DICT",)
                     }
                 } 
 def get_return_helper(type_name,default_parameters=None,type_label=None,default_required = False):
@@ -29,7 +29,7 @@ def get_return_helper(type_name,default_parameters=None,type_label=None,default_
     out =  {"required":
                     {
                      "key":("STRING",{"multiline":False}),
-                     "DICT":("DICT",)
+                     "Dict":("DICT",)
                     }}
     if default_required:
         out["required"][str(type_label)] = insert
@@ -42,16 +42,17 @@ def set_class_constructor(class_name,pretty_name,type_value,type_parameters=None
     @classmethod
     def INPUT_TYPES(s):
         return set_return_helper(type_value,type_parameters,type_label)
-    def set(self, key, DICT = {}, **kwargs):
+    def set(self, key, **kwargs):
+        dictionary = kwargs.pop("Dict",{}).copy()
         value = get_first_value(kwargs.values())
         if (type_class == None or type(value) == type_class) and (type_checker == None or type_checker(value)):
-            DICT[key] = value
-        return (DICT,)
+            dictionary[key] = value
+        return (dictionary,)
     attributes = {
         "INPUT_TYPES":INPUT_TYPES,
         "set":set,
         "RETURN_TYPES":("DICT",),
-        "RETURN_NAMES":("DICT",),
+        "RETURN_NAMES":("Dict",),
         "FUNCTION": "set",
         "CATEGORY": DIRECTORY_NAME+'/'+GROUP_NAME+"/set"
     }
@@ -64,16 +65,18 @@ def get_class_constructor(class_name,pretty_name,type_value,default_parameters =
     @classmethod
     def INPUT_TYPES(s):
         return get_return_helper(type_value,default_parameters,type_label,default_required)
-    def get(self, DICT,default=None, **kwargs):
-        key = get_first_value(kwargs.values())
+    def get(self, **kwargs):
+        Dict = kwargs.get("Dict")
+        default = kwargs.get("default",None)
+        key = kwargs.get("key",None)
         if key is None: return (default,)
-        if key in DICT and (type_class == None or type(DICT[key]) == type_class) and (type_checker == None or type_checker(DICT[key])):
-            return (DICT[key],)
+        if key in Dict and (type_class == None or type(Dict[key]) == type_class) and (type_checker == None or type_checker(Dict[key])):
+            return (Dict[key],)
         if default is not None:
             return (default,)
         if default_replacer is not None:
             return (default_replacer(),)
-        print('\033[93m'+"default not found. Unexpected behavior may occur.")
+        print('\033[93m'+"default not found. Unexpected behavior may occur."+ '\033[0m')
         return (None,)
     attributes = {
         "INPUT_TYPES":INPUT_TYPES,
@@ -92,12 +95,12 @@ class mergeDicts:
     def INPUT_TYPES(s):
         return {"required":
                     {
-                     "DICT1":("DICT",),
-                     "DICT2":("DICT",)
+                     "DICT1":("Dict",),
+                     "DICT2":("Dict",)
                     }
         }
     RETURN_TYPES = ("DICT",)
-    RETURN_NAMES = ("DICT",)
+    RETURN_NAMES = ("Dict",)
     FUNCTION = "merge"
     def merge(self, DICT1, DICT2):
         DICT1.update(DICT2)
@@ -107,7 +110,7 @@ NODE_DISPLAY_NAME_MAPPINGS["MergeDicts"] = "Merge Dicts"
 
 
 set_class_constructor("SetDict","Set Dict",any,type_label="any")
-set_class_constructor("setDictDict","Set Nested Dict","DICT",type_label="DICT Value",type_class=dict)
+set_class_constructor("setDictDict","Set Nested Dict","DICT",type_label="Dict Value",type_class=dict)
 set_class_constructor("setDictInt","Set Dict Int","INT",{"default":0},type_class=int)
 set_class_constructor("setDictFloat","Set Dict Float","FLOAT",{"default":0.0,"step":0.01},type_class=float)
 set_class_constructor("setDictBool","Set Dict Bool","BOOLEAN",{"default":False},type_class=bool)
