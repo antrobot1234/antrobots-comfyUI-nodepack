@@ -20,7 +20,7 @@ def set_return_helper(type_name,type_parameters={},type_label=None):
                      },
                 "optional":
                     {
-                     "Dict":("DICT",)
+                     "DICT":("DICT",)
                     }
                 } 
 def get_return_helper(type_name,default_parameters=None,type_label=None,default_required = False):
@@ -29,7 +29,7 @@ def get_return_helper(type_name,default_parameters=None,type_label=None,default_
     out =  {"required":
                     {
                      "key":("STRING",{"multiline":False}),
-                     "Dict":("DICT",)
+                     "DICT":("DICT",)
                     }}
     if default_required:
         out["required"][str(type_label)] = insert
@@ -43,7 +43,7 @@ def set_class_constructor(class_name,pretty_name,type_value,type_parameters=None
     def INPUT_TYPES(s):
         return set_return_helper(type_value,type_parameters,type_label)
     def set(self, key, **kwargs):
-        dictionary = kwargs.pop("Dict",{}).copy()
+        dictionary = kwargs.pop("DICT",{}).copy()
         value = get_first_value(kwargs.values())
         if (type_class == None or type(value) == type_class) and (type_checker == None or type_checker(value)):
             dictionary[key] = value
@@ -52,7 +52,7 @@ def set_class_constructor(class_name,pretty_name,type_value,type_parameters=None
         "INPUT_TYPES":INPUT_TYPES,
         "set":set,
         "RETURN_TYPES":("DICT",),
-        "RETURN_NAMES":("Dict",),
+        "RETURN_NAMES":("DICT",),
         "FUNCTION": "set",
         "CATEGORY": DIRECTORY_NAME+'/'+GROUP_NAME+"/set"
     }
@@ -66,12 +66,12 @@ def get_class_constructor(class_name,pretty_name,type_value,default_parameters =
     def INPUT_TYPES(s):
         return get_return_helper(type_value,default_parameters,type_label,default_required)
     def get(self, **kwargs):
-        Dict = kwargs.get("Dict")
+        DICT = kwargs.get("DICT")
         default = kwargs.get("default",None)
         key = kwargs.get("key",None)
         if key is None: return (default,)
-        if key in Dict and (type_class == None or type(Dict[key]) == type_class) and (type_checker == None or type_checker(Dict[key])):
-            return (Dict[key],)
+        if key in DICT and (type_class == None or type(DICT[key]) == type_class) and (type_checker == None or type_checker(DICT[key])):
+            return (DICT[key],)
         if default is not None:
             return (default,)
         if default_replacer is not None:
@@ -95,12 +95,12 @@ class mergeDicts:
     def INPUT_TYPES(s):
         return {"required":
                     {
-                     "DICT1":("Dict",),
-                     "DICT2":("Dict",)
+                     "DICT1":("DICT",),
+                     "DICT2":("DICT",)
                     }
         }
     RETURN_TYPES = ("DICT",)
-    RETURN_NAMES = ("Dict",)
+    RETURN_NAMES = ("DICT",)
     FUNCTION = "merge"
     def merge(self, DICT1, DICT2):
         DICT1.update(DICT2)
