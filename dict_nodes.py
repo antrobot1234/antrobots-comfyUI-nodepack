@@ -32,10 +32,10 @@ def get_return_helper(type_name,default_parameters=None,type_label=None,default_
                      "DICT":("DICT",)
                     }}
     if default_required:
-        out["required"][str(type_label)] = insert
+        out["required"]["default"] = insert
     else:
         out["optional"] = {}
-        out["optional"][str(type_label)] = insert
+        out["optional"]["default"] = insert
     return out
 def set_class_constructor(class_name,pretty_name,type_value,type_parameters=None,type_label=None,type_class=None,type_checker=None):
     if type_label is None: type_label = type_value
