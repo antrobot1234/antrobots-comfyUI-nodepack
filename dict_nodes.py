@@ -43,14 +43,15 @@ def get_return_helper(type_name,default_parameters=None,type_label=None,default_
         out["optional"] = {}
         out["optional"]["default"] = insert
     return out
-def set_class_constructor(class_name,pretty_name,type_value,type_parameters=None,type_label=None,type_class=None,type_checker=None):
-    if type_label is None: type_label = type_value
+def set_class_constructor(class_name,pretty_name,type_str,type_parameters=None,type_label=None,type_class=None,type_checker=None):
+    if type_label is None: type_label = type_str
     @classmethod
     def INPUT_TYPES(s):
-        return set_return_helper(type_value,type_parameters,type_label)
-    def set(self, key, DICT) -> tuple:
+        return set_return_helper(type_str,type_parameters,type_label)
+    def set(self, key, DICT = {}, **kwargs) -> tuple:
         DICT = EntryDict(DICT)
-        DICT[key] = type_value
+        DICT[key] = get_first_value(kwargs.values())
+        return (DICT,)
     attributes = {
         "INPUT_TYPES":INPUT_TYPES,
         "set":set,
