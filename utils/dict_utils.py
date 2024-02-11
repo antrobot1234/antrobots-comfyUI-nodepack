@@ -30,7 +30,7 @@ class EntryDict(UserDict):
             except ValueError:
                 raise Exception(f"Could not convert {item} to Entry")
         return super().__setitem__(key, item)
-    def get_by_reference(self, key, reference : Entry):
+    def get_by_reference(self, key, reference : Entry) -> Entry:
         entry = self.get(key, reference)
         if entry is not reference:
             if entry.is_type(reference.typedef):
