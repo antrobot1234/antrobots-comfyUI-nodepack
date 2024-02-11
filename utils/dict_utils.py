@@ -23,7 +23,3 @@ class EntryDict(UserDict):
                 else:item = Entry(item)
             except: raise Exception(f"Could not convert {item} to Entry")
         return super().__setitem__(key, item)
-
-entry_dict = EntryDict()
-entry_dict["a"] = {"value":29}
-print(entry_dict["a"])
