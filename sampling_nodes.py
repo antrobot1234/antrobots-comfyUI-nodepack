@@ -59,7 +59,8 @@ class KSamplerWithRefiner(KSampler):
         image_temp  = base_vae.decode(latent_temp[0]["samples"])
         latent_refine = VAEEncode().encode(refine_vae, image_temp)[0]
         out = common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_refine, denoise=denoise, start_step=refine_step, last_step=total_steps)
-        return out
+        return out + (refine_vae,)
+    RETURN_TYPES = ("LATENT","VAE")
 class calcPercentage:
     @classmethod
     def INPUT_TYPES(s):
