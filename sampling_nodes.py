@@ -60,9 +60,25 @@ class KSamplerWithRefiner(KSampler):
         latent_refine = VAEEncode().encode(refine_vae, image_temp)[0]
         out = common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_refine, denoise=denoise, start_step=refine_step, last_step=total_steps)
         return out
+class calcPercentage:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "total": ("INT", {"default": 20, "min": 1, "max": 10000}),
+                "percentage": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 1.0, "step":0.01, "round": 0.01}),
+            }
+        }
+    RETURN_TYPES = ("INT",)
+    FUNCTION = "calc"
+    def calc(self, total, percentage):
+        return (int(total * percentage),)
+    CATEGORY = DIRECTORY_NAME+'/'+'math'
         
 
 NODE_CLASS_MAPPINGS["sample"] = KSamplerWithDenoise
 NODE_CLASS_MAPPINGS["refine"] = KSamplerWithRefiner
+NODE_CLASS_MAPPINGS["calc"] = calcPercentage
 NODE_DISPLAY_NAME_MAPPINGS["sample"] = "KSampler (Advanced) with Denoise"
 NODE_DISPLAY_NAME_MAPPINGS["refine"] = "KSampler with Refiner"
+NODE_DISPLAY_NAME_MAPPINGS["calc"] = "Percentage of Total"
