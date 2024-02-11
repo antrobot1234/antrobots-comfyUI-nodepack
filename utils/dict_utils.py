@@ -1,7 +1,8 @@
 from collections import UserDict
 class Entry:
     def __init__(self, value = None, typedef = None, default = None):
-        if typedef == None and value == None: raise Exception("Either a type or a value must be provided")
+        if typedef == None and value == None and default == None: raise Exception("Must specify at least one of value, typedef, or default")
+        if default != None and value == None: value = default
         if value != None:
             if typedef != None: 
                 try: value = typedef(value)
@@ -9,7 +10,7 @@ class Entry:
             else: typedef = type(value)
         if typedef != None:
             try: default = typedef() if default == None else typedef(default)
-            except: raise Exception(f"Could not convert {default} to {typedef}")
+            except: print("could not populate default")
         
         self.typedef = typedef
         self.default = default
@@ -35,5 +36,5 @@ class EntryDict(UserDict):
         if entry is not reference:
             if entry.is_type(reference.typedef):
                 return entry
-            else: raise Exception(f"Entry {key} is not {reference.typedef}")
+            else: raise Exception(f"Entry {key} is not {reference.typedef.__name__}")
         return entry
