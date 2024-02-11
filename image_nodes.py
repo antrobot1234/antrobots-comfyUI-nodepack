@@ -10,6 +10,7 @@ NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
 sys.path.append("COMFY_DIR")
 import nodes
+import torch
 GROUP_NAME = "image-handling"
 
 
@@ -49,7 +50,7 @@ class CropImageAndMask:
     FUNCTION = "crop"
     CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
 
-    def crop(self,image_in: torch.Tensor, mask_in: torch.Tensor,vertical_padding:int, horizontal_padding:int, global_padding:int) -> (torch.Tensor, torch.Tensor):
+    def crop(self,image_in: torch.Tensor, mask_in: torch.Tensor,vertical_padding:int, horizontal_padding:int, global_padding:int) -> tuple[torch.Tensor, torch.Tensor]:
         #convert the mask into a region
         if is_mask_empty(mask_in): return (image_in, mask_in)
         #scale mask to image
@@ -109,7 +110,9 @@ class PasteWithMasks:
         Returns:
             torch.Tensor: Resulting image after pasting.
         """
-        if is_mask_empty(mask_dest) or is_mask_empty(mask_source): return (image_dest,)
+        if is_mask_empty(mask_source): 
+            mask_source = scale_to_image(empty_mask(True), image_source)
+        if is_mask_empty(mask_dest): mask_dest = empty_mask(True)
         #scale mask to image
         box = mask_to_box(mask_dest)
         source_box = mask_to_box(mask_source)

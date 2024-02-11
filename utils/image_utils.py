@@ -10,13 +10,15 @@ def empty_image() -> torch.Tensor:
         torch.Tensor: An empty image tensor with shape (1, 16, 16, 3).
     """
     return torch.zeros((1, 16, 16, 3))
-def empty_mask() -> torch.Tensor:
+def empty_mask(do_active: bool = False) -> torch.Tensor:
     """
     Create an empty mask tensor.
 
     Returns:
         torch.Tensor: An empty mask tensor with shape (1, 16, 16).
     """
+    if do_active:
+        return torch.ones((1, 16, 16))
     return torch.zeros((1, 16, 16))
 def is_image(image: torch.Tensor) -> bool:
     """
