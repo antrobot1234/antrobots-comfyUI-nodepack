@@ -64,17 +64,17 @@ def set_class_constructor(class_name,pretty_name,type_str,type_parameters=None,t
     NODE_CLASS_MAPPINGS[class_name] = class_out
     NODE_DISPLAY_NAME_MAPPINGS[class_name] = pretty_name
     return class_out
-def get_class_constructor(class_name,pretty_name,type_value,default_parameters = None,type_label=None,type_class=None,type_checker=None,default_replacer=None, default_required = False):
-    if type_label is None: type_label = type_value
+def get_class_constructor(class_name,pretty_name,type_str,default_parameters = None,type_label=None,type_class=None,type_checker=None,default_replacer=None, default_required = False):
+    if type_label is None: type_label = type_str
     @classmethod
     def INPUT_TYPES(s):
-        return get_return_helper(type_value,default_parameters,type_label,default_required)
+        return get_return_helper(type_str,default_parameters,type_label,default_required)
     def get(self,DICT,key,default = None) -> tuple:
-        return to_tuple(DICT.get_by_reference(key,Entry(value=type_value,default = default)).value)
+        return to_tuple(DICT.get_by_reference(key,Entry(typedef=type_class,default = default)).value)
     attributes = {
         "INPUT_TYPES":INPUT_TYPES,
         "get":get,
-        "RETURN_TYPES":(type_value,),
+        "RETURN_TYPES":(type_str,),
         "RETURN_NAMES":(type_label,),
         "FUNCTION": "get",
         "CATEGORY": DIRECTORY_NAME+'/'+GROUP_NAME+"/get"
