@@ -5,11 +5,17 @@ GROUP_NAME = "dicts"
 
 any = Any("*")
 from .utils.image_utils import empty_image, empty_mask, is_mask, is_image, is_latent
+from .utils.dict_utils import EntryDict, Entry
 import torch
 #SET Dict SECTION
 def get_first_value(values):
     for value in values:
         return value
+def to_tuple(*args):
+    out = ()
+    for arg in args:
+        out += (arg,)
+    return out
 
 def set_return_helper(type_name,type_parameters={},type_label=None):
     if type_label is None: type_label = type_name
@@ -42,12 +48,9 @@ def set_class_constructor(class_name,pretty_name,type_value,type_parameters=None
     @classmethod
     def INPUT_TYPES(s):
         return set_return_helper(type_value,type_parameters,type_label)
-    def set(self, key, **kwargs):
-        dictionary = kwargs.pop("DICT",{}).copy()
-        value = get_first_value(kwargs.values())
-        if (type_class == None or type(value) == type_class) and (type_checker == None or type_checker(value)):
-            dictionary[key] = value
-        return (dictionary,)
+    def set(self, key, DICT) -> tuple:
+        DICT = EntryDict(DICT)
+        DICT[key] = type_value
     attributes = {
         "INPUT_TYPES":INPUT_TYPES,
         "set":set,
@@ -65,19 +68,8 @@ def get_class_constructor(class_name,pretty_name,type_value,default_parameters =
     @classmethod
     def INPUT_TYPES(s):
         return get_return_helper(type_value,default_parameters,type_label,default_required)
-    def get(self, **kwargs):
-        DICT = kwargs.get("DICT")
-        default = kwargs.get("default",None)
-        key = kwargs.get("key",None)
-        if key is None: return (default,)
-        if key in DICT and (type_class == None or type(DICT[key]) == type_class) and (type_checker == None or type_checker(DICT[key])):
-            return (DICT[key],)
-        if default is not None:
-            return (default,)
-        if default_replacer is not None:
-            return (default_replacer(),)
-        print('\033[93m'+"default not found. Unexpected behavior may occur."+ '\033[0m')
-        return (None,)
+    def get(self,DICT,key,default = None) -> tuple:
+        return to_tuple(DICT.get_by_reference(key,Entry(value=type_value,default = default)).value)
     attributes = {
         "INPUT_TYPES":INPUT_TYPES,
         "get":get,
