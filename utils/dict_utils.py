@@ -18,6 +18,9 @@ class Entry:
         return f"Entry(value={self.value}, typedef={self.typedef}, default={self.default})"
     def is_type(self, type):
         return self.typedef == type
+    def get_value(self):
+        if self.value == None: return self.default
+        return self.value
 class EntryDict(UserDict):
     def __setitem__(self, key,item) -> None:
         if not isinstance(item, Entry):
