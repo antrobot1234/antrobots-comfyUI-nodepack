@@ -103,7 +103,7 @@ NODE_DISPLAY_NAME_MAPPINGS["MergeDicts"] = "Merge Dicts"
 
 
 set_class_constructor("SetDict","Set Dict",any,type_label="any")
-set_class_constructor("setDictDict","Set Nested Dict","DICT",type_label="Dict Value",type_class=dict)
+set_class_constructor("setDictDict","Set Nested Dict","DICT",type_label="Dict Value",type_class=EntryDict)
 set_class_constructor("setDictInt","Set Dict Int","INT",{"default":0},type_class=int)
 set_class_constructor("setDictFloat","Set Dict Float","FLOAT",{"default":0.0,"step":0.01},type_class=float)
 set_class_constructor("setDictBool","Set Dict Bool","BOOLEAN",{"default":False},type_class=bool)
@@ -114,7 +114,7 @@ set_class_constructor("setDictLatent","Set Dict Latent","LATENT",type_checker=is
 #set_class_constructor("setDictModel","Set Dict Model","MODEL") #check if model?
 
 get_class_constructor("GetDict","Get Dict",any,type_label="any")
-get_class_constructor("getDictDict","Get Nested Dict","DICT",type_label="Default",type_class=dict)
+get_class_constructor("getDictDict","Get Nested Dict","DICT",type_label="Default",type_class=EntryDict)
 get_class_constructor("getDictInt","Get Dict Int","INT",{"default":0},type_class=int)
 get_class_constructor("getDictFloat","Get Dict Float","FLOAT",{"default":0.0,"step":0.01},type_class=float)
 get_class_constructor("getDictBool","Get Dict Bool","BOOLEAN",{"default":False},type_class=bool)
