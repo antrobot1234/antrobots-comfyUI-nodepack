@@ -7,7 +7,7 @@ NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
 
 sys.path.append(COMFY_DIR)
-from nodes import KSamplerAdvanced,KSampler, common_ksampler, VAEEncode
+from nodes import KSamplerAdvanced,KSampler, common_ksampler, VAEEncode, SetLatentNoiseMask
 
 GROUP_NAME = "sampling"
 
@@ -43,7 +43,8 @@ class KSamplerWithRefiner(KSampler):
                 "refine_negative": ("CONDITIONING", {}),
                 "base_vae": ("VAE", {}),
                 "refine_vae": ("VAE", {}),
-
+            },"optional": {
+                "mask": ("MASK", {}),
             }
         }
         update["required"].update(types["required"])
@@ -52,12 +53,16 @@ class KSamplerWithRefiner(KSampler):
         update["required"].pop("positive")
         update["required"].pop("negative")
         return update
-    def sample(self, base_model, refiner_model, total_steps, refine_step, cfg, sampler_name, scheduler, base_positive, base_negative, refine_positive, refine_negative, base_vae, refine_vae, latent_image, seed, denoise=1.0):
-        if(refine_step > total_steps):
-            refine_step = total_steps
-        latent_temp = common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=denoise, start_step=0, last_step=refine_step, force_full_denoise=True)
-        image_temp  = base_vae.decode(latent_temp[0]["samples"])
+    def sample(self, base_model, refiner_model, total_steps, refine_step, cfg, sampler_name, scheduler, base_positive, base_negative, refine_positive, refine_negative, base_vae, refine_vae, latent_image, seed,mask, denoise=1.0):
+        latent_image = SetLatentNoiseMask.set_mask(None,latent_image, mask)[0]
+        if refine_step >= total_steps:
+            return (common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=denoise, start_step=0, last_step=total_steps)[0], base_vae)
+        latent_temp = common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=denoise, start_step=0, last_step=refine_step, force_full_denoise=True)[0]
+        if base_vae == refine_vae:
+            return common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_temp, denoise=denoise, start_step=refine_step, last_step=total_steps)
+        image_temp  = base_vae.decode(latent_temp["samples"])
         latent_refine = VAEEncode().encode(refine_vae, image_temp)[0]
+        latent_refine = SetLatentNoiseMask.set_mask(None,latent_refine, mask)[0]
         out = common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_refine, denoise=denoise, start_step=refine_step, last_step=total_steps)
         return out + (refine_vae,)
     RETURN_TYPES = ("LATENT","VAE")
