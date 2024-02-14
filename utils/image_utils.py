@@ -143,10 +143,10 @@ def scale_box_with_padding(box, horizontal_padding, vertical_padding, max_x, max
         torch.Tensor: A tensor containing the scaled coordinates of the box in the format [x1, x2, y1, y2].
     """
     x1, y1, x2, y2 = box
-    x1 = min(max(0, x1 - horizontal_padding) - padding, max_x)
-    x2 = min(max(0, x2 + horizontal_padding) + padding, max_x)
-    y1 = min(max(0, y1 - vertical_padding) - padding, max_y)
-    y2 = min(max(0, y2 + vertical_padding) + padding, max_y)
+    x1 = min(max(0, x1 - horizontal_padding- padding) , max_x)
+    x2 = min(max(0, x2 + horizontal_padding+ padding) , max_x)
+    y1 = min(max(0, y1 - vertical_padding- padding) , max_y)
+    y2 = min(max(0, y2 + vertical_padding+ padding) , max_y)
     return torch.Tensor([x1, y1, x2, y2]).to(torch.int32)
 
 def convert_img_to_bcHW(img:torch.Tensor) -> torch.Tensor:
