@@ -13,7 +13,7 @@ GROUP_NAME = "sampling"
 
 class KSamplerWithDenoise(KSamplerAdvanced):
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(cls):
         types = super().INPUT_TYPES()
         types["required"].update({"denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step":0.01, "round": 0.01})})
         types["required"]["add_noise"] = ("BOOLEAN", {"default": True})
@@ -29,7 +29,7 @@ class KSamplerWithDenoise(KSamplerAdvanced):
 class KSamplerWithRefiner(KSampler):
     CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(cls):
         types = super().INPUT_TYPES()
         update= {
             "required": {
@@ -43,6 +43,8 @@ class KSamplerWithRefiner(KSampler):
                 "refine_negative": ("CONDITIONING", {}),
                 "base_vae": ("VAE", {}),
                 "refine_vae": ("VAE", {}),
+                "base_denoise":("FLOAT", {"default": 1.0, "min": 0.01, "max": 1.0, "step":0.01, "round": 0.01}),
+                "refine_denoise":("FLOAT", {"default": 1.0, "min": 0.01, "max": 1.0, "step":0.01, "round": 0.01}),
             },"optional": {
                 "mask": ("MASK", {}),
             }
@@ -52,23 +54,24 @@ class KSamplerWithRefiner(KSampler):
         update["required"].pop("steps")
         update["required"].pop("positive")
         update["required"].pop("negative")
+        update["required"].pop("denoise")
         return update
-    def sample(self, base_model, refiner_model, total_steps, refine_step, cfg, sampler_name, scheduler, base_positive, base_negative, refine_positive, refine_negative, base_vae, refine_vae, latent_image, seed,mask, denoise=1.0):
-        latent_image = SetLatentNoiseMask.set_mask(None,latent_image, mask)[0]
+    def sample(self, base_model, refiner_model, total_steps, refine_step, cfg, sampler_name, scheduler, base_positive, base_negative, refine_positive, refine_negative, base_vae, refine_vae, latent_image, seed,mask, base_denoise, refine_denoise):
+        latent_image = SetLatentNoiseMask.set_mask(None,latent_image, mask)[0] # type: ignore
         if refine_step >= total_steps:
-            return (common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=denoise, start_step=0, last_step=total_steps)[0], base_vae)
-        latent_temp = common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=denoise, start_step=0, last_step=refine_step, force_full_denoise=True)[0]
+            return (common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=base_denoise, start_step=0, last_step=total_steps)[0], base_vae)
+        latent_temp = common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=base_denoise, start_step=0, last_step=refine_step, force_full_denoise=True)[0]
         if base_vae == refine_vae:
-            return common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_temp, denoise=denoise, start_step=refine_step, last_step=total_steps)
+            return common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_temp, denoise=refine_denoise, start_step=refine_step, last_step=total_steps)
         image_temp  = base_vae.decode(latent_temp["samples"])
         latent_refine = VAEEncode().encode(refine_vae, image_temp)[0]
-        latent_refine = SetLatentNoiseMask.set_mask(None,latent_refine, mask)[0]
-        out = common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_refine, denoise=denoise, start_step=refine_step, last_step=total_steps)
+        latent_refine = SetLatentNoiseMask.set_mask(None,latent_refine, mask)[0] #type: ignore
+        out = common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_refine, denoise=refine_denoise, start_step=refine_step, last_step=total_steps)
         return out + (refine_vae,)
     RETURN_TYPES = ("LATENT","VAE")
 class calcPercentage:
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(cls):
         return {
             "required": {
                 "total": ("INT", {"default": 20, "min": 1, "max": 10000}),

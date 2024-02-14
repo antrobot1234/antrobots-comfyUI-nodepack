@@ -1,3 +1,4 @@
+from git import Optional
 import torch
 import sys
 import torchvision.transforms.functional as TF
@@ -17,7 +18,7 @@ GROUP_NAME = "image-handling"
 
 class CropImageAndMask:
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(cls):
         return {
             "required": {
                 "image_in": ("IMAGE",),
@@ -66,7 +67,7 @@ class CropImageAndMask:
 
 class ScaleImageToSize:
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(cls):
         return {"required": {"image_in": ("IMAGE",),
                              "desired_size": ("INT", {"default": 512, "min": 1, "max": MAXSIZE, "step": 1, "display": "number"}),
                              "doLarger": ("BOOLEAN", {"default": False})}}
@@ -75,17 +76,18 @@ class ScaleImageToSize:
     FUNCTION = "scale"
     CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
 
-    def scale(self, image_in: torch.Tensor, desired_size: int,doLarger:bool) -> torch.Tensor:
+    def scale(self, image_in: torch.Tensor, desired_size: int,doLarger:bool) -> tuple[torch.Tensor]:
         if doLarger:
             scale = desired_size / min(image_in.shape[1], image_in.shape[2])
         else:
             scale = desired_size / max(image_in.shape[1], image_in.shape[2])
         final_size = int(min(image_in.shape[1], image_in.shape[2])*scale)
-        image_out = scale_to_size(image_in, final_size)
+        size_list = [final_size]
+        image_out = scale_to_size(image_in, size_list)
         return (image_out,)
 class PasteWithMasks:
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(cls):
         return {
             "required": {"image_source": ("IMAGE",),
                              "mask_source": ("MASK",),
@@ -97,7 +99,7 @@ class PasteWithMasks:
     RETURN_NAMES = ("image_out",)
     FUNCTION = "paste"
     CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
-    def paste(self, image_source: torch.Tensor, mask_source: torch.Tensor, image_dest: torch.Tensor, mask_dest: torch.Tensor) -> torch.Tensor:
+    def paste(self, image_source: torch.Tensor, mask_source: torch.Tensor, image_dest: torch.Tensor, mask_dest: torch.Tensor) -> tuple[torch.Tensor]:
         """
         Paste the source image onto the destination image using masks.
 
@@ -123,7 +125,7 @@ class PasteWithMasks:
         return (result_image,)
 class AlphaComposite:
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(cls):
         return {
             "required": {"image_source": ("IMAGE",),
                          "image_dest": ("IMAGE",)
@@ -138,19 +140,30 @@ class AlphaComposite:
     RETURN_NAMES = ("image_out",)
     FUNCTION = "composite"
     CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
-    def composite(self, image_source: torch.Tensor, image_dest: torch.Tensor,mask_source: torch.Tensor = None, mask_dest: torch.Tensor = None, x_offset: int=0, y_offset: int=0) -> torch.Tensor:
+    def composite(self, image_source: torch.Tensor, image_dest: torch.Tensor,mask_source: Optional[torch.Tensor] = None, mask_dest: Optional[torch.Tensor] = None, x_offset: int=0, y_offset: int=0) -> tuple[torch.Tensor]:
         dest = (x_offset,y_offset)
-        return (alpha_composite(image_source, mask_source, image_dest, mask_dest, dest),)  
+        return (alpha_composite(image_source, mask_source, image_dest, mask_dest, dest),)  # type: ignore
 class PreviewMask(nodes.PreviewImage):
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(cls):
         return {"required": {
                              "mask": ("MASK",),
                              }}
     CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
-    def save_images(self, mask: torch.Tensor) -> torch.Tensor:
+    def save_images(self, mask: torch.Tensor) -> tuple:
         mask_image = mask_to_image(mask)
-        return super().save_images(mask_image)
+        return super().save_images(mask_image) # type: ignore
+class DialateMask:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {"mask": ("MASK",),
+                             "kernel_size": ("INT", {"default": 3, "min": MINSIZE, "max": MAXSIZE, "step": 1})}}
+    RETURN_TYPES = ("MASK",)
+    RETURN_NAMES = ("mask_out",)
+    FUNCTION = "dialate"
+    CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
+    def dialate(self, mask: torch.Tensor, kernel_size: int) -> tuple[torch.Tensor]:
+        return (dialate_mask(mask,kernel_size),)
         
 
 
@@ -161,10 +174,12 @@ NODE_CLASS_MAPPINGS.update({"crop": CropImageAndMask,
                              "scale": ScaleImageToSize,
                              "paste": PasteWithMasks,
                              "composite": AlphaComposite,
-                             "preview_mask": PreviewMask})
+                             "preview_mask": PreviewMask,
+                             "dialate_mask": DialateMask})
                 
 NODE_DISPLAY_NAME_MAPPINGS.update({"crop": "Crop Image and Mask",
                                     "scale": "Scale Image to Size",
                                     "paste": "Paste with Masks",
                                     "composite": "Alpha Composite",
-                                    "preview_mask": "Preview Mask"})
+                                    "preview_mask": "Preview Mask",
+                                    "dialate_mask": "Dialate Mask"})

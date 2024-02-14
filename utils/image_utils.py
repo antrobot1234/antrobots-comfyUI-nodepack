@@ -1,7 +1,30 @@
+from git import Optional
 import torch
 import torchvision.transforms.functional as TF
 from torchvision.ops import masks_to_boxes
 import PIL.Image as Image
+import PIL.ImageFilter as ImageFilter
+def dialate_mask(mask: torch.Tensor, kernel_size: int = 3) -> torch.Tensor:
+    """
+    Dilate a mask.
+
+    Args:
+        mask (torch.Tensor): The mask to be dilated.
+        kernel_size (int, optional): The kernel size for the dilation. Defaults to 3.
+
+    Returns:
+        torch.Tensor: The dilated mask.
+    """
+    #convert mask to PIL image
+    mask_img = convert_img_to_pil(mask)
+    #dilate mask
+    if (kernel_size > 0):
+        mask_img = mask_img.filter(ImageFilter.MaxFilter(kernel_size))
+    elif (kernel_size < 0):
+        mask_img = mask_img.filter(ImageFilter.MinFilter(-kernel_size))
+    #convert mask back to torch tensor
+    mask = convert_pil_to_img(mask_img)
+    return mask
 def empty_image() -> torch.Tensor:
     """
     Create an empty image tensor.
@@ -63,7 +86,7 @@ def is_mask_empty(mask: torch.Tensor) -> bool:
     Returns:
         bool: True if the mask is empty, False otherwise.
     """
-    return mask.sum() == 0
+    return bool(mask.sum() == 0)
 def mask_to_image(mask: torch.Tensor) -> torch.Tensor:
     """
     Convert a mask to an image.
@@ -183,11 +206,14 @@ def scale_to_image(image_scale:torch.Tensor, image_reference:torch.Tensor) -> to
     Returns:
     - torch.Tensor, the scaled image
     """
+    shape = list((image_reference.shape[1], image_reference.shape[2]))
     if(len(image_scale.shape) == 4):
         image_scale = convert_img_to_bcHW(image_scale)
-        return convert_img_to_bHWc(TF.resize(image_scale, (image_reference.shape[1], image_reference.shape[2])))
-    return TF.resize(image_scale, (image_reference.shape[1], image_reference.shape[2]))
-def scale_to_size(image_scale:torch.Tensor, desired_size:int) -> torch.Tensor:
+        resized = TF.resize(image_scale, shape)
+        return convert_img_to_bHWc(image_scale)
+    resized = TF.resize(image_scale, shape)
+    return resized
+def scale_to_size(image_scale:torch.Tensor, desired_size: list[int]) -> torch.Tensor:
     """
     Scale the input image or mask to match the size of desired_size (maintaining aspect ratio) and return the scaled image.
     
@@ -213,7 +239,7 @@ def crop_with_box(image:torch.Tensor, box:torch.Tensor) -> torch.Tensor:
     Returns:
         torch.Tensor: The cropped image tensor.
     """
-    xmin, ymin, xmax, ymax = box
+    xmin, ymin, xmax, ymax = box.tolist()
     if(len(image.shape) == 4):
         image = convert_img_to_bcHW(image)
         cropped = TF.crop(image, ymin, xmin, ymax - ymin, xmax - xmin)
@@ -230,11 +256,12 @@ def scale_to_box(image:torch.Tensor, box:torch.Tensor) -> torch.Tensor:
     Returns:
         torch.Tensor: The scaled image tensor.
     """
-    x1, y1, x2, y2 = box
+    x1, y1, x2, y2 = box.tolist()
+    shape = list((y2 - y1, x2 - x1))
     if(len(image.shape) == 4):
         image = convert_img_to_bcHW(image)
-        return convert_img_to_bHWc(TF.resize(image, (y2 - y1, x2 - x1)))
-    return TF.resize(image, (y2 - y1, x2 - x1))
+        return convert_img_to_bHWc(TF.resize(image, shape))
+    return TF.resize(image, shape)
 def mask_to_box(mask:torch.Tensor) -> torch.Tensor:
     """
     Convert a binary mask to a bounding box.
@@ -278,7 +305,7 @@ def convert_pil_to_img(image:Image.Image) -> torch.Tensor:
     if len(tensor.shape) == 4:
         tensor = convert_img_to_bHWc(tensor)
     return tensor
-def alpha_composite(image_source:torch.Tensor, mask_source:torch.Tensor, image_dest:torch.Tensor, mask_dest:torch.Tensor, dest = (0,0), source = (0,0)) -> torch.Tensor:
+def alpha_composite(image_source:torch.Tensor, mask_source:torch.Tensor, image_dest:torch.Tensor, mask_dest: Optional[torch.Tensor], dest = (0,0), source = (0,0)) -> torch.Tensor:
     #convert to numpy if needed
     if(type(dest) == torch.Tensor): dest = tuple(dest.tolist())
     if(type(source) == torch.Tensor): source = tuple(source.tolist())        
@@ -288,14 +315,14 @@ def alpha_composite(image_source:torch.Tensor, mask_source:torch.Tensor, image_d
     #add alpha
     if mask_dest is not None:
         mask_dest = scale_to_image(mask_dest, image_dest)
-        mask_dest = convert_img_to_pil(mask_dest)
-        image_dest_pil.putalpha(mask_dest)
+        mask_dest_img = convert_img_to_pil(mask_dest)
+        image_dest_pil.putalpha(mask_dest_img)
     else:
         image_dest_pil.putalpha(Image.new('L', image_dest_pil.size, 255))
     if mask_source is not None:
         mask_source = scale_to_image(mask_source, image_source)
-        mask_source = convert_img_to_pil(mask_source)
-        image_source_pil.putalpha(mask_source)
+        mask_source_img = convert_img_to_pil(mask_source)
+        image_source_pil.putalpha(mask_source_img)
     else:
         image_source_pil.putalpha(Image.new('L', image_source_pil.size, 255))
     #alpha composite

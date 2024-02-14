@@ -26,6 +26,10 @@ class Entry:
     def get_value(self):
         if self.value == None: return self.default
         return self.value
+    def cast_value(self, type):
+        try:
+            self.value = type(self.value)
+        except: raise Exception(f"Could not cast {self.value} to {type}")
 class EntryDict(UserDict):
     def __setitem__(self, key,item) -> None:
         if not isinstance(item, Entry):
@@ -39,5 +43,6 @@ class EntryDict(UserDict):
         if entry is not reference:
             if entry.type_equals(reference):
                 return entry
-            else: raise Exception(f"Entry {key} is not {reference.typedef.__name__}")
+            #try to cast entry to reference type
+            else: entry.cast_value(reference.typedef)
         return entry
