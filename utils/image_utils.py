@@ -1,4 +1,5 @@
 from git import Optional
+from sympy import true
 import torch
 import torchvision.transforms.functional as TF
 from torchvision.ops import masks_to_boxes
@@ -23,7 +24,7 @@ def dialate_mask(mask: torch.Tensor, kernel_size: int = 3) -> torch.Tensor:
     elif (kernel_size < 0):
         mask_img = mask_img.filter(ImageFilter.MinFilter(-kernel_size))
     #convert mask back to torch tensor
-    mask = convert_pil_to_img(mask_img)
+    mask = convert_pil_to_img(mask_img,True)
     return mask
 def empty_image() -> torch.Tensor:
     """
@@ -209,7 +210,7 @@ def scale_to_image(image_scale:torch.Tensor, image_reference:torch.Tensor) -> to
     shape = list((image_reference.shape[1], image_reference.shape[2]))
     if(len(image_scale.shape) == 4):
         image_scale = convert_img_to_bcHW(image_scale)
-        resized = TF.resize(image_scale, shape)
+        image_scale = TF.resize(image_scale, shape)
         return convert_img_to_bHWc(image_scale)
     resized = TF.resize(image_scale, shape)
     return resized
@@ -291,7 +292,7 @@ def convert_img_to_pil(image:torch.Tensor) -> Image.Image:
         image = convert_img_to_bcHW(image)
         return TF.to_pil_image(image[0])
     return TF.to_pil_image(image[0])
-def convert_pil_to_img(image:Image.Image) -> torch.Tensor:
+def convert_pil_to_img(image:Image.Image,is_mask:bool = False) -> torch.Tensor:
     """
     Convert a PIL image to an image tensor.
 
@@ -301,8 +302,9 @@ def convert_pil_to_img(image:Image.Image) -> torch.Tensor:
     Returns:
         torch.Tensor: The converted image tensor.
     """
-    tensor = TF.to_tensor(image).unsqueeze(0)
-    if len(tensor.shape) == 4:
+    tensor = TF.to_tensor(image)
+    if not is_mask:
+        tensor = tensor.unsqueeze(0)
         tensor = convert_img_to_bHWc(tensor)
     return tensor
 def alpha_composite(image_source:torch.Tensor, mask_source:torch.Tensor, image_dest:torch.Tensor, mask_dest: Optional[torch.Tensor], dest = (0,0), source = (0,0)) -> torch.Tensor:
