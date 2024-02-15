@@ -1,6 +1,7 @@
 import sys
 from typing import Any
 import torch
+from .utils.image_utils import is_mask_empty, empty_mask
 
 
 from .utils.globals import DIRECTORY_NAME, COMFY_DIR
@@ -58,7 +59,7 @@ class KSamplerWithRefiner(KSampler):
         update["required"].pop("denoise")
         return update
     def sample(self, base_model, refiner_model, total_steps, refine_step, cfg, sampler_name, scheduler, base_positive, base_negative, refine_positive, refine_negative, base_vae, refine_vae, latent_image, seed,base_denoise, refine_denoise, mask: torch.Tensor|None = None) -> tuple[torch.Tensor, Any]:
-        if mask != None:
+        if mask != None and not is_mask_empty(mask):
             latent_image = SetLatentNoiseMask.set_mask(None,latent_image, mask)[0] # type: ignore
         if refine_step >= total_steps:
             return (common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=base_denoise, start_step=0, last_step=total_steps)[0], base_vae)
@@ -68,7 +69,7 @@ class KSamplerWithRefiner(KSampler):
         latent_temp = common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=base_denoise, start_step=0, last_step=refine_step, force_full_denoise=True)[0]
         image_temp  = base_vae.decode(latent_temp["samples"])
         latent_refine = VAEEncode().encode(refine_vae, image_temp)[0]
-        if mask != None:
+        if mask != None and not is_mask_empty(mask):
             latent_refine = SetLatentNoiseMask.set_mask(None,latent_refine, mask)[0] #type: ignore
         out = common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_refine, denoise=refine_denoise, start_step=refine_step, last_step=total_steps)
         return out + (refine_vae,)
