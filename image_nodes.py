@@ -113,7 +113,7 @@ class PasteWithMasks:
             torch.Tensor: Resulting image after pasting.
         """
         if is_mask_empty(mask_source): 
-            mask_source = scale_to_image(empty_mask(True), image_source)
+            mask_source = scale_to_image(empty_mask(True), image_dest)
         if is_mask_empty(mask_dest): mask_dest = empty_mask(True)
         #scale mask to image
         box = mask_to_box(mask_dest)
