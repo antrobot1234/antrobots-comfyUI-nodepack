@@ -174,12 +174,10 @@ NODE_CLASS_MAPPINGS.update({"crop": CropImageAndMask,
                              "scale": ScaleImageToSize,
                              "paste": PasteWithMasks,
                              "composite": AlphaComposite,
-                             "preview_mask": PreviewMask,
-                             "dialate_mask": DialateMask})
+                             "preview_mask": PreviewMask})
                 
 NODE_DISPLAY_NAME_MAPPINGS.update({"crop": "Crop Image and Mask",
                                     "scale": "Scale Image to Size",
                                     "paste": "Paste with Masks",
                                     "composite": "Alpha Composite",
-                                    "preview_mask": "Preview Mask",
-                                    "dialate_mask": "Dialate Mask"})
+                                    "preview_mask": "Preview Mask"})
