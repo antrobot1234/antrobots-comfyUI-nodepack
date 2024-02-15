@@ -7,6 +7,8 @@ Below is a description of what each node in this node pack does.
 ## Sampling Nodes
 ### KSampler (advanced) with denoise
 this node is a variant of the built-in KSampler (advanced) with the additional ability to provide a `denoise` value. This allows you to swap models mid generation in img-to-img workflows much more efficiently. `denoise` works in tandem with `start step` and `end step`.
+## Ksampler with Refiner
+This node is an extension of the Ksampler (advanced) node that takes in two sets of model parameters. It will then generate with `base_model` until `refine_step`, in which it will switch to `refine_model` (re-encoding the latent with `refine_vae` if the two passed in VAEs are different). it also has an optional `mask` can also be provided, which will set the latent noise mask if given.
 ## Flow Control nodes
 ### Swap
 This node takes two inputs of any type. If the swap bool is `False`, it simply pipes input 1 into output A and input 2 into output B. however, if the swap bool is `True`, it swaps the outputs, mapping 1 to B and 2 to A. This is useful when combined with piping workflows, as it allows you to easily and quickly switch to a different input pipe or swap two pipes around with a boolean.
