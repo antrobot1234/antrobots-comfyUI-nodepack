@@ -19,18 +19,23 @@ from ..image_nodes import NODE_CLASS_MAPPINGS as image_nodes
 from ..sampling_nodes import NODE_CLASS_MAPPINGS as sampling_nodes
 from ..flow_nodes import NODE_CLASS_MAPPINGS as flow_nodes
 from ..dict_nodes import NODE_CLASS_MAPPINGS as dict_nodes
+from ..knob import NODE_CLASS_MAPPINGS as knob
 
 from ..image_nodes import NODE_DISPLAY_NAME_MAPPINGS as image_nodes_display
 from ..sampling_nodes import NODE_DISPLAY_NAME_MAPPINGS as sampling_nodes_display
 from ..flow_nodes import NODE_DISPLAY_NAME_MAPPINGS as flow_nodes_display
 from ..dict_nodes import NODE_DISPLAY_NAME_MAPPINGS as dict_nodes_display
+from ..knob import NODE_DISPLAY_NAME_MAPPINGS as knob_display
 
 NODE_CLASS_MAPPINGS.update(image_nodes)
 NODE_CLASS_MAPPINGS.update(sampling_nodes)
 NODE_CLASS_MAPPINGS.update(flow_nodes)
 NODE_CLASS_MAPPINGS.update(dict_nodes)
+NODE_CLASS_MAPPINGS.update(knob)
+
 
 NODE_DISPLAY_NAME_MAPPINGS.update(image_nodes_display)
 NODE_DISPLAY_NAME_MAPPINGS.update(sampling_nodes_display)
 NODE_DISPLAY_NAME_MAPPINGS.update(flow_nodes_display)
 NODE_DISPLAY_NAME_MAPPINGS.update(dict_nodes_display)
+NODE_DISPLAY_NAME_MAPPINGS.update(knob_display)
