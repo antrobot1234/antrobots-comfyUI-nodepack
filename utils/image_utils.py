@@ -5,6 +5,7 @@ import torchvision.transforms.functional as TF
 from torchvision.ops import masks_to_boxes
 import PIL.Image as Image
 import PIL.ImageFilter as ImageFilter
+
 def dialate_mask(mask: torch.Tensor, kernel_size: int = 3) -> torch.Tensor:
     """
     Dilate a mask.
@@ -196,7 +197,7 @@ def convert_img_to_bHWc(img:torch.Tensor) -> torch.Tensor:
     """
     return img.permute(0, 2, 3, 1)
 
-def scale_to_image(image_scale:torch.Tensor, image_reference:torch.Tensor) -> torch.Tensor:
+def scale_to_image(image_scale:torch.Tensor, image_reference:torch.Tensor, scale_mode: TF.InterpolationMode = TF.InterpolationMode.BILINEAR) -> torch.Tensor:
     """
     Scale the input image or mask to match the size of the reference image and return the scaled image.
     
@@ -210,11 +211,11 @@ def scale_to_image(image_scale:torch.Tensor, image_reference:torch.Tensor) -> to
     shape = list((image_reference.shape[1], image_reference.shape[2]))
     if(len(image_scale.shape) == 4):
         image_scale = convert_img_to_bcHW(image_scale)
-        image_scale = TF.resize(image_scale, shape)
-        return convert_img_to_bHWc(image_scale)
-    resized = TF.resize(image_scale, shape)
+        image_scale = TF.resize(image_scale, shape, interpolation=scale_mode)
+        return convert_img_to_bHWc(image_scale,)
+    resized = TF.resize(image_scale, shape, interpolation=scale_mode)
     return resized
-def scale_to_size(image_scale:torch.Tensor, desired_size: list[int]) -> torch.Tensor:
+def scale_to_size(image_scale:torch.Tensor, desired_size: list[int],scale_mode: TF.InterpolationMode = TF.InterpolationMode.BILINEAR) -> torch.Tensor:
     """
     Scale the input image or mask to match the size of desired_size (maintaining aspect ratio) and return the scaled image.
     
@@ -227,8 +228,8 @@ def scale_to_size(image_scale:torch.Tensor, desired_size: list[int]) -> torch.Te
     """
     if(len(image_scale.shape) == 4):
         image_scale = convert_img_to_bcHW(image_scale)
-        return convert_img_to_bHWc(TF.resize(image_scale, desired_size))
-    return TF.resize(image_scale, desired_size)
+        return convert_img_to_bHWc(TF.resize(image_scale, desired_size, interpolation=scale_mode))
+    return TF.resize(image_scale, desired_size, interpolation=scale_mode)
 def crop_with_box(image:torch.Tensor, box:torch.Tensor) -> torch.Tensor:
     """
     Crop an image or mask using the specified bounding box.
@@ -246,7 +247,7 @@ def crop_with_box(image:torch.Tensor, box:torch.Tensor) -> torch.Tensor:
         cropped = TF.crop(image, ymin, xmin, ymax - ymin, xmax - xmin)
         return convert_img_to_bHWc(cropped)
     return TF.crop(image, ymin, xmin, ymax - ymin, xmax - xmin)
-def scale_to_box(image:torch.Tensor, box:torch.Tensor) -> torch.Tensor:
+def scale_to_box(image:torch.Tensor, box:torch.Tensor,scale_mode: TF.InterpolationMode = TF.InterpolationMode.BILINEAR) -> torch.Tensor:
     """
     Scale an image or mask to match the size of the bounding box.
 
@@ -261,8 +262,8 @@ def scale_to_box(image:torch.Tensor, box:torch.Tensor) -> torch.Tensor:
     shape = list((y2 - y1, x2 - x1))
     if(len(image.shape) == 4):
         image = convert_img_to_bcHW(image)
-        return convert_img_to_bHWc(TF.resize(image, shape))
-    return TF.resize(image, shape)
+        return convert_img_to_bHWc(TF.resize(image, shape, interpolation=scale_mode))
+    return TF.resize(image, shape, interpolation=scale_mode)
 def mask_to_box(mask:torch.Tensor) -> torch.Tensor:
     """
     Convert a binary mask to a bounding box.
