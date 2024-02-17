@@ -5,7 +5,7 @@ import torchvision.transforms.functional as TF
 from torchvision.ops import masks_to_boxes
 import PIL.Image as Image
 import PIL.ImageFilter as ImageFilter
-interp_mode_list = [i.value for i in TF.InterpolationMode]
+interp_mode_list = ["nearest","nearest-exact", "bilinear", "bicubic"]
 def dialate_mask(mask: torch.Tensor, kernel_size: int = 3) -> torch.Tensor:
     """
     Dilate a mask.

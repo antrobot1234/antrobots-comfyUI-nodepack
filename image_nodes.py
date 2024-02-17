@@ -5,6 +5,7 @@ import torchvision.transforms.functional as TF
 from math import ceil
 from .utils.image_utils import *
 from PIL import Image
+import torchvision.transforms.functional as TF
 
 from .utils.globals import DIRECTORY_NAME, MAXSIZE, MINSIZE, COMFY_DIR
 NODE_CLASS_MAPPINGS = {}
@@ -69,37 +70,44 @@ class ScaleImageToSize:
     @classmethod
     def INPUT_TYPES(cls):
         return {"required": {"image_in": ("IMAGE",),
-                             "desired_size": ("INT", {"default": 512, "min": 1, "max": MAXSIZE, "step": 1, "display": "number"}),
-                             "doLarger": ("BOOLEAN", {"default": False})}}
+                    "desired_size": ("INT", {"default": 512, "min": 1, "max": MAXSIZE, "step": 1, "display": "number"}),
+                    "doLarger": ("BOOLEAN", {"default": False})},
+                "optional": {
+                    "scale_mode": (interp_mode_list, {"default": "bilinear"})
+                }}
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image_out",)
     FUNCTION = "scale"
     CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
 
-    def scale(self, image_in: torch.Tensor, desired_size: int,doLarger:bool) -> tuple[torch.Tensor]:
+    def scale(self, image_in: torch.Tensor, desired_size: int,doLarger:bool,scale_mode: str = "bilinear") -> tuple[torch.Tensor]:
+        interp_mode = TF.InterpolationMode(scale_mode)
         if doLarger:
             scale = desired_size / min(image_in.shape[1], image_in.shape[2])
         else:
             scale = desired_size / max(image_in.shape[1], image_in.shape[2])
         final_size = int(min(image_in.shape[1], image_in.shape[2])*scale)
         size_list = [final_size]
-        image_out = scale_to_size(image_in, size_list)
+        image_out = scale_to_size(image_in, size_list, interp_mode)
         return (image_out,)
 class PasteWithMasks:
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {"image_source": ("IMAGE",),
-                             "mask_source": ("MASK",),
-                             "image_dest": ("IMAGE",),
-                             "mask_dest": ("MASK",),
-                             }
+                "mask_source": ("MASK",),
+                "image_dest": ("IMAGE",),
+                "mask_dest": ("MASK",),
+                },
+            "optional": {
+                "scale_mode": (interp_mode_list,{"default": "bilinear"})
+            }
         }
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image_out",)
     FUNCTION = "paste"
     CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
-    def paste(self, image_source: torch.Tensor, mask_source: torch.Tensor, image_dest: torch.Tensor, mask_dest: torch.Tensor) -> tuple[torch.Tensor]:
+    def paste(self, image_source: torch.Tensor, mask_source: torch.Tensor, image_dest: torch.Tensor, mask_dest: torch.Tensor, scale_mode: str = "bilinear") -> tuple[torch.Tensor]:
         """
         Paste the source image onto the destination image using masks.
 
@@ -112,15 +120,16 @@ class PasteWithMasks:
         Returns:
             torch.Tensor: Resulting image after pasting.
         """
+        interp_mode = TF.InterpolationMode(scale_mode)
         if is_mask_empty(mask_source): 
-            mask_source = scale_to_image(empty_mask(True), image_dest)
+            mask_source = scale_to_image(empty_mask(True), image_dest, interp_mode)
         if is_mask_empty(mask_dest): mask_dest = empty_mask(True)
         #scale mask to image
         box = mask_to_box(mask_dest)
         source_box = mask_to_box(mask_source)
         #invert mask_dest
         mask_dest = 1 - mask_dest
-        image_source = scale_to_image(image_source, mask_source)
+        image_source = scale_to_image(image_source, mask_source, interp_mode)
         result_image = alpha_composite(image_source, mask_source, image_dest, None, box[0:2], source_box[0:2])
         return (result_image,)
 class AlphaComposite:
