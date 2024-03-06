@@ -6,7 +6,7 @@ GROUP_NAME = "flow-control"
 any = Any("*")
 class Swap: 
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(cls):
         return {"required":
                     {"val1":(any,),
                      "val2":(any,),
