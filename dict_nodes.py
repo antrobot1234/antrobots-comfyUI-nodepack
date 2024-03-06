@@ -1,3 +1,4 @@
+from ast import List
 from .utils.globals import DIRECTORY_NAME, Any
 NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
@@ -67,7 +68,7 @@ def set_class_constructor(class_name,pretty_name,type_str,type_parameters=None,t
 def get_class_constructor(class_name,pretty_name,type_str,default_parameters = None,type_label=None,type_class=None,type_checker=None,default_replacer=None, default_required = False):
     if type_label is None: type_label = type_str
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(cls):
         return get_return_helper(type_str,default_parameters,type_label,default_required)
     def get(self,DICT,key,default = None) -> tuple:
         return to_tuple(DICT.get_by_reference(key,Entry(typedef=type_class,default = default)).value)
@@ -85,7 +86,7 @@ def get_class_constructor(class_name,pretty_name,type_str,default_parameters = N
     return class_out
 class mergeDicts:
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(cls):
         return {"required":
                     {
                      "DICT1":("DICT",),
@@ -111,6 +112,7 @@ set_class_constructor("setDictString","Set Dict String","STRING",{"multiline":Fa
 set_class_constructor("setDictImage","Set Dict Image","IMAGE",type_checker=is_image)
 set_class_constructor("setDictMask","Set Dict Mask","MASK",type_checker=is_mask)
 set_class_constructor("setDictLatent","Set Dict Latent","LATENT",type_checker=is_latent)
+set_class_constructor("setDictConditioning","Set Dict Conditioning","CONDITIONING",type_class=List)
 #set_class_constructor("setDictModel","Set Dict Model","MODEL") #check if model?
 
 get_class_constructor("GetDict","Get Dict",any,type_label="any")
@@ -122,4 +124,5 @@ get_class_constructor("getDictString","Get Dict String","STRING",{"multiline":Fa
 get_class_constructor("getDictImage","Get Dict Image","IMAGE",type_checker=is_image,default_replacer=empty_image)
 get_class_constructor("getDictMask","Get Dict Mask","MASK",type_checker=is_mask,default_replacer=empty_mask)
 get_class_constructor("getDictLatent","Get Dict Latent","LATENT",type_checker=is_latent)
+get_class_constructor("getDictConditioning","Get Dict Conditioning","CONDITIONING",type_class=List)
 #get_class_constructor("getDictModel","Get Dict Model","MODEL")
