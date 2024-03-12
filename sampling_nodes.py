@@ -71,7 +71,8 @@ class KSamplerWithRefiner(KSampler):
         update["required"].pop("denoise")
         return update
     def sample(self, base_model, refiner_model, total_steps, refine_step, cfg, sampler_name, scheduler, base_positive, base_negative, refine_positive, refine_negative, base_vae, refine_vae, latent_image, seed,base_denoise, refine_denoise, mask: torch.Tensor|None = None) -> tuple[torch.Tensor, Any]:
-        do_denoise = (base_vae != refine_vae) or is_mask_full(mask or empty_mask(True))
+        if mask is None: mask = empty_mask(True)
+        do_denoise = (base_vae != refine_vae) or is_mask_full(mask)
         latent_image =set_latent_noise_mask(mask, latent_image)
         if refine_step >= total_steps:
             return (common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=base_denoise, start_step=0, last_step=total_steps)[0], base_vae)
