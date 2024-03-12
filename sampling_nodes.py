@@ -83,7 +83,7 @@ class KSamplerWithRefiner(KSampler):
         latent_temp = common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=base_denoise, start_step=0, last_step=refine_step, force_full_denoise=do_denoise)[0]
         latent_temp = recode_VAE(latent_temp, base_vae, refine_vae)
         latent_temp = set_latent_noise_mask(mask, latent_temp)
-        return (common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_temp, denoise=refine_denoise, start_step=refine_step, last_step=total_steps,disable_noise=(not do_denoise))[0], base_vae)
+        return (common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_temp, denoise=refine_denoise, start_step=refine_step, last_step=total_steps,disable_noise=(not do_denoise))[0], refine_vae)
     RETURN_TYPES = ("LATENT","VAE")
 class KSamplerWithPipes(KSamplerWithRefiner):
     @classmethod
@@ -124,8 +124,8 @@ class KSamplerWithPipes(KSamplerWithRefiner):
         else:
             latent_image = encode_VAE(image, base_vae)
         
-        latent, vae = super().sample(base_model, refiner_model, total_steps, refine_step, cfg, sampler_name, scheduler, base_positive, base_negative, refine_positive, refine_negative, base_vae, refine_vae, latent_image, seed,base_denoise, refine_denoise, mask)
-        image = decode_VAE(latent, vae)
+        latent, vae_out = super().sample(base_model, refiner_model, total_steps, refine_step, cfg, sampler_name, scheduler, base_positive, base_negative, refine_positive, refine_negative, base_vae, refine_vae, latent_image, seed,base_denoise, refine_denoise, mask)
+        image = decode_VAE(latent, vae_out)
         return (image,)
 
 
