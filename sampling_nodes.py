@@ -10,7 +10,7 @@ NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
 
 sys.path.append(COMFY_DIR)
-from nodes import KSamplerAdvanced,KSampler, common_ksampler, VAEEncode, SetLatentNoiseMask
+from nodes import KSamplerAdvanced,KSampler, common_ksampler, VAEEncode, SetLatentNoiseMask, EmptyLatentImage
 
 GROUP_NAME = "sampling"
 def set_latent_noise_mask(mask, latent_image):
@@ -108,7 +108,7 @@ class KSamplerWithPipes(KSamplerWithRefiner):
         return types
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image_out",)
-    def sample(self, base_pipe, refine_pipe, total_steps, refine_step, cfg, sampler_name, scheduler, image, seed,base_denoise, refine_denoise, mask: torch.Tensor|None = None) -> tuple[torch.Tensor]:
+    def sample(self, base_pipe, refine_pipe, total_steps, refine_step, cfg, sampler_name, scheduler, image: torch.Tensor, seed,base_denoise, refine_denoise, mask: torch.Tensor|None = None) -> tuple[torch.Tensor]:
         base_model = base_pipe[0]
         base_vae = base_pipe[2]
         base_positive = base_pipe[3]
@@ -118,8 +118,11 @@ class KSamplerWithPipes(KSamplerWithRefiner):
         refine_vae = refine_pipe[2]
         refine_positive = refine_pipe[3]
         refine_negative = refine_pipe[4]
-
-        latent_image = encode_VAE(image, base_vae)
+        if mask is None: mask = empty_mask(True)
+        if is_mask_full(mask):
+            latent_image = EmptyLatentImage().generate(image.shape[2], image.shape[1])[0]
+        else:
+            latent_image = encode_VAE(image, base_vae)
         
         latent, vae = super().sample(base_model, refiner_model, total_steps, refine_step, cfg, sampler_name, scheduler, base_positive, base_negative, refine_positive, refine_negative, base_vae, refine_vae, latent_image, seed,base_denoise, refine_denoise, mask)
         image = decode_VAE(latent, vae)
