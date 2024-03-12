@@ -1,7 +1,8 @@
 import sys
 from typing import Any
+from sympy import true
 import torch
-from .utils.image_utils import is_mask_empty, empty_mask
+from .utils.image_utils import empty_mask, is_mask_empty, is_mask_full
 
 
 from .utils.globals import DIRECTORY_NAME, COMFY_DIR
@@ -70,6 +71,7 @@ class KSamplerWithRefiner(KSampler):
         update["required"].pop("denoise")
         return update
     def sample(self, base_model, refiner_model, total_steps, refine_step, cfg, sampler_name, scheduler, base_positive, base_negative, refine_positive, refine_negative, base_vae, refine_vae, latent_image, seed,base_denoise, refine_denoise, mask: torch.Tensor|None = None) -> tuple[torch.Tensor, Any]:
+        do_denoise = (base_vae != refine_vae) or is_mask_full(mask or empty_mask(True))
         latent_image =set_latent_noise_mask(mask, latent_image)
         if refine_step >= total_steps:
             return (common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=base_denoise, start_step=0, last_step=total_steps)[0], base_vae)
@@ -77,10 +79,10 @@ class KSamplerWithRefiner(KSampler):
             latent_image = recode_VAE(latent_image, base_vae, refine_vae)
             return (common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_image, denoise=refine_denoise, start_step=0, last_step=total_steps)[0], refine_vae)
         
-        latent_temp = common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=base_denoise, start_step=0, last_step=refine_step, force_full_denoise=False)[0]
+        latent_temp = common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=base_denoise, start_step=0, last_step=refine_step, force_full_denoise=do_denoise)[0]
         latent_temp = recode_VAE(latent_temp, base_vae, refine_vae)
         latent_temp = set_latent_noise_mask(mask, latent_temp)
-        return (common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_temp, denoise=refine_denoise, start_step=refine_step, last_step=total_steps,disable_noise=True)[0], base_vae)
+        return (common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_temp, denoise=refine_denoise, start_step=refine_step, last_step=total_steps,disable_noise=(not do_denoise))[0], base_vae)
     RETURN_TYPES = ("LATENT","VAE")
 class KSamplerWithPipes(KSamplerWithRefiner):
     @classmethod
