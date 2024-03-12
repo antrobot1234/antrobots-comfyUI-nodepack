@@ -15,10 +15,14 @@ GROUP_NAME = "sampling"
 def set_latent_noise_mask(mask, latent_image):
     if mask is not None and not is_mask_empty(mask):
         latent_image = SetLatentNoiseMask().set_mask(latent_image, mask)
+def encode_VAE(latent_image : torch.Tensor, vae):
+    return VAEEncode().encode(vae, latent_image)[0]
+def decode_VAE(latent_image, vae):
+    return vae.decode(latent_image["samples"])
 def recode_VAE(latent_image, vae_from, vae_to):
     if vae_from == vae_to:
         return latent_image
-    return VAEEncode().encode(vae_to,vae_from.decode(latent_image["samples"]))
+    return encode_VAE(decode_VAE(latent_image, vae_from), vae_to)
 class KSamplerWithDenoise(KSamplerAdvanced):
     @classmethod
     def INPUT_TYPES(cls):
@@ -77,6 +81,45 @@ class KSamplerWithRefiner(KSampler):
         latent_temp = set_latent_noise_mask(mask, latent_temp)
         return (common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_temp, denoise=refine_denoise, start_step=refine_step, last_step=total_steps,disable_noise=True)[0], base_vae)
     RETURN_TYPES = ("LATENT","VAE")
+class KSamplerWithPipes(KSamplerWithRefiner):
+    @classmethod
+    def INPUT_TYPES(cls):
+        types = super().INPUT_TYPES()
+        types["required"]["base_pipe"] = ("BASIC_PIPE", {})
+        types["required"]["refine_pipe"] = ("BASIC_PIPE", {})
+        types["optional"]["image"] = ("IMAGE", {})
+
+        types["required"].pop("base_model")
+        types["required"].pop("base_positive")
+        types["required"].pop("base_negative")
+        types["required"].pop("base_vae")
+
+        types["required"].pop("refiner_model")
+        types["required"].pop("refine_positive")
+        types["required"].pop("refine_negative")
+        types["required"].pop("refine_vae")
+
+        return types
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image_out",)
+    def sample(self, base_pipe, refine_pipe, total_steps, refine_step, cfg, sampler_name, scheduler, image, seed,base_denoise, refine_denoise, mask: torch.Tensor|None = None) -> tuple[torch.Tensor]:
+        base_model = base_pipe[0]
+        base_vae = base_pipe[2]
+        base_positive = base_pipe[3]
+        base_negative = base_pipe[4]
+
+        refiner_model = refine_pipe[0]
+        refine_vae = refine_pipe[2]
+        refine_positive = refine_pipe[3]
+        refine_negative = refine_pipe[4]
+
+        latent_image = encode_VAE(image, base_vae)
+        
+        latent, vae = super().sample(base_model, refiner_model, total_steps, refine_step, cfg, sampler_name, scheduler, base_positive, base_negative, refine_positive, refine_negative, base_vae, refine_vae, latent_image, seed,base_denoise, refine_denoise, mask)
+        image = decode_VAE(latent, vae)
+        return (image,)
+
+
 class calcPercentage:
     @classmethod
     def INPUT_TYPES(cls):
@@ -94,8 +137,8 @@ class calcPercentage:
 def register(node_class: type,class_name : str, display_name : str):
     NODE_CLASS_MAPPINGS[class_name] = node_class
     NODE_DISPLAY_NAME_MAPPINGS[class_name] = display_name
-    node_class.CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME  
 
 register(KSamplerWithDenoise,"sample","KSampler (Advanced) with Denoise")
 register(KSamplerWithRefiner,"refine","KSampler with Refiner")
 register(calcPercentage,"calc","Percentage of Total")
+register(KSamplerWithPipes,"refine_pipe","KSampler with Pipes")
