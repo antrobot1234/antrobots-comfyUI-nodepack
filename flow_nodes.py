@@ -17,7 +17,6 @@ class Swap:
     RETURN_TYPES = (any,any)
     RETURN_NAMES = ("valA","valB")
     FUNCTION = "swap"
-    CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
 
     def swap(self, val1, val2, doSwap: bool):
         if doSwap:
@@ -54,9 +53,17 @@ class OptionalBasicPipe:
                     "NEGATIVE":("CONDITIONING",)
                     }
         }
+    RETURN_TYPES = ("BASIC_PIPE",)
+    RETURN_NAMES = ("pipe",)
+    FUNCTION = "pipe"
     def pipe(self, model = None, clip = None, vae = None, positive = None, negative = None):
         return ((model, clip, vae, positive, negative),)
-NODE_CLASS_MAPPINGS["Swap"] = Swap
-NODE_CLASS_MAPPINGS["OptionalConditioningConcat"] = OptionalConditioningConcat
-NODE_DISPLAY_NAME_MAPPINGS["Swap"] = "Swap"
-NODE_DISPLAY_NAME_MAPPINGS["OptionalConditioningConcat"] = "Op. Conditioning (Concat)"
+    
+def register(node_class: type,class_name : str, display_name : str):
+    NODE_CLASS_MAPPINGS[class_name] = node_class
+    NODE_DISPLAY_NAME_MAPPINGS[class_name] = display_name
+    node_class.CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
+
+register(Swap, "Swap", "Swap")
+register(OptionalConditioningConcat, "OptionalConditioningConcat", "Op. Conditioning (Concat)")
+register(OptionalBasicPipe, "OptionalBasicPipe", "Op. Basic Pipe")
