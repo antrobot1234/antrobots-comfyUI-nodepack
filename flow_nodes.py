@@ -41,6 +41,21 @@ class OptionalConditioningConcat(ConditioningConcat):
         if conditioning_to is None:
             return (conditioning_from,)
         return super().concat(conditioning_to, conditioning_from)
+class OptionalBasicPipe:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+                "required":{},
+                "optional":{
+                    "MODEL":("MODEL",),
+                    "CLIP":("CLIP",),
+                    "VAE":("VAE",),
+                    "POSITIVE":("CONDITIONING",),
+                    "NEGATIVE":("CONDITIONING",)
+                    }
+        }
+    def pipe(self, model = None, clip = None, vae = None, positive = None, negative = None):
+        return ((model, clip, vae, positive, negative),)
 NODE_CLASS_MAPPINGS["Swap"] = Swap
 NODE_CLASS_MAPPINGS["OptionalConditioningConcat"] = OptionalConditioningConcat
 NODE_DISPLAY_NAME_MAPPINGS["Swap"] = "Swap"
