@@ -89,6 +89,8 @@ def is_mask_empty(mask: torch.Tensor) -> bool:
         bool: True if the mask is empty, False otherwise.
     """
     return bool(mask.sum() == 0)
+def is_mask_full(mask: torch.Tensor) -> bool:
+    return bool(mask.sum() == mask.numel())
 def mask_to_image(mask: torch.Tensor) -> torch.Tensor:
     """
     Convert a mask to an image.
