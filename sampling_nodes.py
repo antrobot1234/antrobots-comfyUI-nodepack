@@ -15,6 +15,7 @@ GROUP_NAME = "sampling"
 def set_latent_noise_mask(mask, latent_image):
     if mask is not None and not is_mask_empty(mask):
         latent_image = SetLatentNoiseMask().set_mask(latent_image, mask)
+    return latent_image
 def encode_VAE(latent_image : torch.Tensor, vae):
     return VAEEncode().encode(vae, latent_image)[0]
 def decode_VAE(latent_image, vae):
@@ -98,6 +99,8 @@ class KSamplerWithPipes(KSamplerWithRefiner):
         types["required"].pop("refine_positive")
         types["required"].pop("refine_negative")
         types["required"].pop("refine_vae")
+
+        types["required"].pop("latent_image")
 
         return types
     RETURN_TYPES = ("IMAGE",)
