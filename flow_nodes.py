@@ -44,20 +44,47 @@ class OptionalBasicPipe:
     @classmethod
     def INPUT_TYPES(cls):
         return {
-                "required":{},
-                "optional":{
-                    "MODEL":("MODEL",),
-                    "CLIP":("CLIP",),
-                    "VAE":("VAE",),
-                    "POSITIVE":("CONDITIONING",),
-                    "NEGATIVE":("CONDITIONING",)
-                    }
+            "required":{},
+            "optional":{
+                "model":("MODEL",),
+                "clip":("CLIP",),
+                "vae":("VAE",),
+                "positive":("CONDITIONING",),
+                "negative":("CONDITIONING",)
+                }
         }
     RETURN_TYPES = ("BASIC_PIPE",)
     RETURN_NAMES = ("pipe",)
     FUNCTION = "pipe"
     def pipe(self, model = None, clip = None, vae = None, positive = None, negative = None):
         return ((model, clip, vae, positive, negative),)
+class OptionalEditPipe:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required":{"pipe":("BASIC_PIPE",)},
+            "optional":{
+                "model":("MODEL",),
+                "clip":("CLIP",),
+                "vae":("VAE",),
+                "positive":("CONDITIONING",),
+                "negative":("CONDITIONING",)
+            }
+        }
+    RETURN_TYPES = ("BASIC_PIPE",)
+    RETURN_NAMES = ("pipe",)
+    FUNCTION = "pipe"
+    def pipe(self, pipe, model = None, clip = None, vae = None, positive = None, negative = None):
+        #insert any new parameters to the pipe tuple in the correct position
+        out = []
+        inp = [model, clip, vae, positive, negative]
+        for i, n in enumerate(pipe):
+            if inp[i] is not None:
+                out.append(inp[i])
+            else:
+                out.append(n)
+        return (tuple(out),)
+
     
 def register(node_class: type,class_name : str, display_name : str):
     NODE_CLASS_MAPPINGS[class_name] = node_class
@@ -66,4 +93,5 @@ def register(node_class: type,class_name : str, display_name : str):
 
 register(Swap, "Swap", "Swap")
 register(OptionalConditioningConcat, "OptionalConditioningConcat", "Op. Conditioning (Concat)")
-register(OptionalBasicPipe, "OptionalBasicPipe", "Op. Basic Pipe")
+register(OptionalBasicPipe, "OptionalBasicPipe", "Op. To Basic Pipe")
+register(OptionalEditPipe, "OptionalEditPipe", "Op. Edit Basic Pipe")
