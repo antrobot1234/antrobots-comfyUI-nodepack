@@ -12,7 +12,13 @@ sys.path.append(COMFY_DIR)
 from nodes import KSamplerAdvanced,KSampler, common_ksampler, VAEEncode, SetLatentNoiseMask
 
 GROUP_NAME = "sampling"
-
+def set_latent_noise_mask(mask, latent_image):
+    if mask is not None and not is_mask_empty(mask):
+        latent_image = SetLatentNoiseMask().set_mask(latent_image, mask)
+def recode_VAE(latent_image, vae_from, vae_to):
+    if vae_from == vae_to:
+        return latent_image
+    return VAEEncode().encode(vae_to,vae_from.decode(latent_image["samples"]))
 class KSamplerWithDenoise(KSamplerAdvanced):
     @classmethod
     def INPUT_TYPES(cls):
