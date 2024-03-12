@@ -14,7 +14,7 @@ from nodes import KSamplerAdvanced,KSampler, common_ksampler, VAEEncode, SetLate
 GROUP_NAME = "sampling"
 def set_latent_noise_mask(mask, latent_image):
     if mask is not None and not is_mask_empty(mask):
-        latent_image = SetLatentNoiseMask().set_mask(latent_image, mask)
+        latent_image = SetLatentNoiseMask().set_mask(latent_image, mask)[0]
     return latent_image
 def encode_VAE(latent_image : torch.Tensor, vae):
     return VAEEncode().encode(vae, latent_image)[0]
