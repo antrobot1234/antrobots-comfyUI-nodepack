@@ -88,11 +88,11 @@ class calcPercentage:
     def calc(self, total, percentage):
         return (int(total * percentage),)
     CATEGORY = DIRECTORY_NAME+'/'+'math'
-        
+def register(node_class: type,class_name : str, display_name : str):
+    NODE_CLASS_MAPPINGS[class_name] = node_class
+    NODE_DISPLAY_NAME_MAPPINGS[class_name] = display_name
+    node_class.CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME  
 
-NODE_CLASS_MAPPINGS["sample"] = KSamplerWithDenoise
-NODE_CLASS_MAPPINGS["refine"] = KSamplerWithRefiner
-NODE_CLASS_MAPPINGS["calc"] = calcPercentage
-NODE_DISPLAY_NAME_MAPPINGS["sample"] = "KSampler (Advanced) with Denoise"
-NODE_DISPLAY_NAME_MAPPINGS["refine"] = "KSampler with Refiner"
-NODE_DISPLAY_NAME_MAPPINGS["calc"] = "Percentage of Total"
+register(KSamplerWithDenoise,"sample","KSampler (Advanced) with Denoise")
+register(KSamplerWithRefiner,"refine","KSampler with Refiner")
+register(calcPercentage,"calc","Percentage of Total")
