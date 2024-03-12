@@ -37,7 +37,7 @@ def empty_image() -> torch.Tensor:
     return torch.zeros((1, 16, 16, 3))
 def empty_mask(do_active: bool = False) -> torch.Tensor:
     """
-    Create an empty mask tensor.
+    Create an empty mask tensor. if do_active is True, the mask will be full (white), otherwise it will be empty (black).
 
     Returns:
         torch.Tensor: An empty mask tensor with shape (1, 16, 16).
