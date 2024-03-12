@@ -93,5 +93,5 @@ def register(node_class: type,class_name : str, display_name : str):
 
 register(Swap, "Swap", "Swap")
 register(OptionalConditioningConcat, "OptionalConditioningConcat", "Op. Conditioning (Concat)")
-register(OptionalBasicPipe, "OptionalBasicPipe", "Op. To Basic Pipe")
-register(OptionalEditPipe, "OptionalEditPipe", "Op. Edit Basic Pipe")
+register(OptionalBasicPipe, "OptionalBasicPipeInput", "Op. To Basic Pipe")
+register(OptionalEditPipe, "OptionalBasicPipeEdit", "Op. Edit Basic Pipe")
