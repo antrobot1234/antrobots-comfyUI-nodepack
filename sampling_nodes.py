@@ -73,11 +73,12 @@ class KSamplerWithRefiner(KSampler):
     def sample(self, base_model, refiner_model, total_steps, refine_step, cfg, sampler_name, scheduler, base_positive, base_negative, refine_positive, refine_negative, base_vae, refine_vae, latent_image, seed,base_denoise, refine_denoise, mask: torch.Tensor|None = None) -> tuple[torch.Tensor, Any]:
         if mask is None: mask = empty_mask(True)
         do_denoise = (base_vae != refine_vae) or (not is_mask_full(mask) and not is_mask_empty(mask))
-        latent_image =set_latent_noise_mask(mask, latent_image)
+        latent_image = set_latent_noise_mask(mask, latent_image)
         if refine_step >= total_steps:
             return (common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=base_denoise, start_step=0, last_step=total_steps)[0], base_vae)
         if refine_step == 0:
             latent_image = recode_VAE(latent_image, base_vae, refine_vae)
+            latent_image = set_latent_noise_mask(mask, latent_image)
             return (common_ksampler(refiner_model, seed, total_steps, cfg, sampler_name, scheduler, refine_positive, refine_negative, latent_image, denoise=refine_denoise, start_step=0, last_step=total_steps)[0], refine_vae)
         
         latent_temp = common_ksampler(base_model, seed, total_steps, cfg, sampler_name, scheduler, base_positive, base_negative, latent_image, denoise=base_denoise, start_step=0, last_step=refine_step, force_full_denoise=do_denoise)[0]
