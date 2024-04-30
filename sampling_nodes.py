@@ -93,6 +93,7 @@ class KSamplerWithPipes(KSamplerWithRefiner):
         types["required"]["base_pipe"] = ("BASIC_PIPE", {})
         types["required"]["refine_pipe"] = ("BASIC_PIPE", {})
         types["optional"]["image"] = ("IMAGE", {})
+        types["optional"]["use_image"] = ("BOOLEAN", {"default": False})
 
         types["required"].pop("base_model")
         types["required"].pop("base_positive")
@@ -109,7 +110,7 @@ class KSamplerWithPipes(KSamplerWithRefiner):
         return types
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image_out",)
-    def sample(self, base_pipe, refine_pipe, total_steps, refine_step, cfg, sampler_name, scheduler, image: torch.Tensor, seed,base_denoise, refine_denoise, mask: torch.Tensor|None = None) -> tuple[torch.Tensor]:
+    def sample(self, base_pipe, refine_pipe, total_steps, refine_step, cfg, sampler_name, scheduler, image: torch.Tensor, seed,base_denoise, refine_denoise,use_image, mask: torch.Tensor|None = None) -> tuple[torch.Tensor]:
         base_model = base_pipe[0]
         base_vae = base_pipe[2]
         base_positive = base_pipe[3]
@@ -119,8 +120,14 @@ class KSamplerWithPipes(KSamplerWithRefiner):
         refine_vae = refine_pipe[2]
         refine_positive = refine_pipe[3]
         refine_negative = refine_pipe[4]
-        if mask is None: mask = empty_mask(True)
-        latent_image = encode_VAE(image, base_vae)
+        img_width = image.shape[2]
+        img_height = image.shape[1]
+        if use_image:
+            latent_image = encode_VAE(image, base_vae)
+            if mask is None: mask = empty_mask(True)
+        else:
+            latent_image = EmptyLatentImage().generate(img_width, img_height)[0]
+            mask = empty_mask(True)
         
         latent, vae_out = super().sample(base_model, refiner_model, total_steps, refine_step, cfg, sampler_name, scheduler, base_positive, base_negative, refine_positive, refine_negative, base_vae, refine_vae, latent_image, seed,base_denoise, refine_denoise, mask)
         image = decode_VAE(latent, vae_out)
