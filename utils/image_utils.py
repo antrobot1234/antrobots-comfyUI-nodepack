@@ -223,7 +223,7 @@ def scale_to_size(image_scale:torch.Tensor, desired_size: list[int],scale_mode: 
     
     Args:
     - image_scale: torch.Tensor, the input image to be scaled
-    - image_reference: torch.Tensor, the reference image to match the size
+    - desired_size: list[int], the desired size of the output image in the format [height, width]
     
     Returns:
     - torch.Tensor, the scaled image
@@ -232,6 +232,23 @@ def scale_to_size(image_scale:torch.Tensor, desired_size: list[int],scale_mode: 
         image_scale = convert_img_to_bcHW(image_scale)
         return convert_img_to_bHWc(TF.resize(image_scale, desired_size, interpolation=scale_mode))
     return TF.resize(image_scale, desired_size, interpolation=scale_mode)
+def scale_by_factor(image_scale:torch.Tensor, factor_tuple: tuple, scale_mode: TF.InterpolationMode = TF.InterpolationMode.BILINEAR) -> torch.Tensor:
+    """
+    Scale the input image by a factor and return the scaled image."""
+    factor_y, factor_x = factor_tuple
+    if(len(image_scale.shape) == 4):
+        image_scale = convert_img_to_bcHW(image_scale)
+        return convert_img_to_bHWc(TF.resize(image_scale, (int(image_scale.shape[2] * factor_y), int(image_scale.shape[3] * factor_x)), interpolation=scale_mode))
+    return TF.resize(image_scale, (int(image_scale.shape[1] * factor_y), int(image_scale.shape[2] * factor_x)), interpolation=scale_mode)
+    
+def get_box_factor(box_a:torch.Tensor, box_b:torch.Tensor) -> torch.Tensor:
+    """gets the scale factor between box_a and box_b"""
+    #get box dimensions
+    height_a = box_a[3] - box_a[1]
+    width_a = box_a[2] - box_a[0]
+    height_b = box_b[3] - box_b[1]
+    width_b = box_b[2] - box_b[0]
+    return (height_b/height_a, width_b/width_a)
 def crop_with_box(image:torch.Tensor, box:torch.Tensor) -> torch.Tensor:
     """
     Crop an image or mask using the specified bounding box.
