@@ -351,4 +351,22 @@ def alpha_composite(image_source:torch.Tensor, mask_source:torch.Tensor, image_d
     image_dest_pil.alpha_composite(image_source_pil,dest,source)
     return convert_pil_to_img(image_dest_pil)
 
+
+def create_res(aspect_ratio, base_resolution, compression_factor = 8):
+    """
+    Create a resolution tuple based on the given parameters.
+
+    Args:
+        aspect_ratio (float): The aspect ratio of the image. higher = taller
+        base_resolution (int): The base resolution of the image.
+        compression_factor (int): The compression factor for the resolution. (Round to the nearest multiple of compression_factor)
+
+    Returns:
+        tuple: A tuple containing the width and height of the resolution.
+    """
+    w, h = base_resolution, base_resolution
     
+    w = int((((base_resolution**2)/aspect_ratio)**0.5)//compression_factor)*compression_factor
+    h = int((((base_resolution**2)*aspect_ratio)**0.5)//compression_factor)*compression_factor
+    
+    return (w, h)

@@ -70,8 +70,8 @@ class ScaleImageToSize:
     @classmethod
     def INPUT_TYPES(cls):
         return {"required": {"image_in": ("IMAGE",),
-                    "desired_size": ("INT", {"default": 512, "min": 1, "max": MAXSIZE, "step": 1, "display": "number"}),
-                    "doLarger": ("BOOLEAN", {"default": False})},
+                    "desired_size": ("INT", {"default": 1024, "min": 1, "max": MAXSIZE, "step": 1, "display": "number"}),
+                    "sizing_mode": (["balanced","larger", "smaller"], {"default": "balanced"})},
                 "optional": {
                     "scale_mode": (interp_mode_list, {"default": "bilinear"})
                 }}
@@ -80,12 +80,23 @@ class ScaleImageToSize:
     FUNCTION = "scale"
     CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
 
-    def scale(self, image_in: torch.Tensor, desired_size: int,doLarger:bool,scale_mode: str = "bilinear") -> tuple[torch.Tensor]:
+    def scale(self, image_in: torch.Tensor, desired_size: int,sizing_mode: str = "balanced",scale_mode: str = "bilinear") -> tuple[torch.Tensor]:
+        height = image_in.shape[1]
+        width = image_in.shape[2]
         interp_mode = TF.InterpolationMode(scale_mode)
-        if doLarger:
-            scale = desired_size / min(image_in.shape[1], image_in.shape[2])
+        if sizing_mode == "balanced":
+            aspect_ratio = height / width
+            width, height = create_res(aspect_ratio, desired_size)
+            size_list = [height, width]
+            image_out = scale_to_size(image_in, size_list, interp_mode)
+            return (image_out,)
+        
+        elif sizing_mode == "larger":
+            scale = desired_size / min(width, height)
+        elif sizing_mode == "smaller":
+            scale = desired_size / max(width, height)
         else:
-            scale = desired_size / max(image_in.shape[1], image_in.shape[2])
+            raise ValueError(f"Unknown sizing mode: {sizing_mode}")
         final_size = int(min(image_in.shape[1], image_in.shape[2])*scale)
         size_list = [final_size]
         image_out = scale_to_size(image_in, size_list, interp_mode)
