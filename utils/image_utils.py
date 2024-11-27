@@ -351,6 +351,25 @@ def alpha_composite(image_source:torch.Tensor, mask_source:torch.Tensor, image_d
     image_dest_pil.alpha_composite(image_source_pil,dest,source)
     return convert_pil_to_img(image_dest_pil)
 
+def fill_with_color(image:torch.Tensor, mask:torch.Tensor, r:int, g:int, b:int) -> torch.Tensor:
+    """
+    Fill an image with a color based on a mask.
+
+    Args:
+        image (torch.Tensor): The input image tensor.
+        mask (torch.Tensor): The mask tensor.
+        r (int): The red component of the color.
+        g (int): The green component of the color.
+        b (int): The blue component of the color.
+
+    Returns:
+        torch.Tensor: The filled image tensor.
+    """
+    image = convert_img_to_pil(image)
+    mask = convert_img_to_pil(mask)
+    image_fill = Image.new('RGB', image.size, (r, g, b))
+    image = Image.composite(image_fill, image, mask)
+    return convert_pil_to_img(image)
 
 def create_res(aspect_ratio, base_resolution, compression_factor = 8):
     """

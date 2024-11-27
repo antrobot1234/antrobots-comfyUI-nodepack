@@ -193,8 +193,24 @@ class ScaleImageWithReference:
         image_out = scale_to_image(image_in, image_ref, interp_mode)
         return (image_out,)
         
-
-
+class FillWithColor:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "mask": ("MASK",),
+                "R": ("INT", {"default": 0, "min": 0, "max": 255, "step": 1, "display": "number"}),
+                "G": ("INT", {"default": 0, "min": 0, "max": 255, "step": 1, "display": "number"}),
+                "B": ("INT", {"default": 0, "min": 0, "max": 255, "step": 1, "display": "number"})
+            }
+        }
+    RETURN_TYPES = ("IMAGE",)    
+    RETURN_NAMES = ("image",)
+    FUNCTION = "fill"
+    CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
+    def fill(self, image: torch.Tensor, mask: torch.Tensor, R: int, G: int, B: int) -> tuple[torch.Tensor]:
+        return (fill_with_color(image, mask, R, G, B),)
 
 
 
@@ -203,11 +219,13 @@ NODE_CLASS_MAPPINGS.update({"crop": CropImageAndMask,
                              "paste": PasteWithMasks,
                              "composite": AlphaComposite,
                              "preview_mask": PreviewMask,
-                             "scale_with_reference": ScaleImageWithReference})
+                             "scale_with_reference": ScaleImageWithReference,
+                             "fill_with_color": FillWithColor})
                 
 NODE_DISPLAY_NAME_MAPPINGS.update({"crop": "Crop Image and Mask",
                                     "scale": "Scale Image to Size",
                                     "paste": "Paste with Masks",
                                     "composite": "Alpha Composite",
                                     "preview_mask": "Preview Mask",
-                                    "scale_with_reference": "Scale Image with Reference"})
+                                    "scale_with_reference": "Scale Image with Reference",
+                                    "fill_with_color": "Fill with Color"})
