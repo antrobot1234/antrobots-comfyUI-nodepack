@@ -173,17 +173,25 @@ class PreviewMask(nodes.PreviewImage):
     def save_images(self, mask: torch.Tensor) -> tuple:
         mask_image = mask_to_image(mask)
         return super().save_images(mask_image) # type: ignore
-class DialateMask:
+
+class ScaleImageWithReference:
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required": {"mask": ("MASK",),
-                             "kernel_size": ("INT", {"default": 3, "min": MINSIZE, "max": MAXSIZE, "step": 1})}}
-    RETURN_TYPES = ("MASK",)
-    RETURN_NAMES = ("mask_out",)
-    FUNCTION = "dialate"
+        return {
+            "required": {"image_in": ("IMAGE",),
+                         "image_ref": ("IMAGE",)},
+            "optional": {
+                        "scale_mode": (interp_mode_list,{"default": "bilinear"})
+            }
+        }
+    RETURN_TYPES = ("IMAGE",)    
+    RETURN_NAMES = ("image_out",)
+    FUNCTION = "scale"
     CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
-    def dialate(self, mask: torch.Tensor, kernel_size: int) -> tuple[torch.Tensor]:
-        return (dialate_mask(mask,kernel_size),)
+    def scale(self, image_in: torch.Tensor, image_ref: torch.Tensor, scale_mode: str = "bilinear") -> tuple[torch.Tensor]:
+        interp_mode = TF.InterpolationMode(scale_mode)
+        image_out = scale_to_image(image_in, image_ref, interp_mode)
+        return (image_out,)
         
 
 
@@ -194,10 +202,12 @@ NODE_CLASS_MAPPINGS.update({"crop": CropImageAndMask,
                              "scale": ScaleImageToSize,
                              "paste": PasteWithMasks,
                              "composite": AlphaComposite,
-                             "preview_mask": PreviewMask})
+                             "preview_mask": PreviewMask,
+                             "scale_with_reference": ScaleImageWithReference})
                 
 NODE_DISPLAY_NAME_MAPPINGS.update({"crop": "Crop Image and Mask",
                                     "scale": "Scale Image to Size",
                                     "paste": "Paste with Masks",
                                     "composite": "Alpha Composite",
-                                    "preview_mask": "Preview Mask"})
+                                    "preview_mask": "Preview Mask",
+                                    "scale_with_reference": "Scale Image with Reference"})
