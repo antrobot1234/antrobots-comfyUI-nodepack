@@ -367,7 +367,6 @@ def fill_with_color(image:torch.Tensor, mask:torch.Tensor, r:int, g:int, b:int) 
     """
     mask = scale_to_image(mask, image, TF.InterpolationMode.NEAREST_EXACT)
     image = convert_img_to_pil(image)
-    mask = convert_img_to_pil(mask)
     image_fill = Image.new('RGB', image.size, (r, g, b))
     image = Image.composite(image_fill, image, mask)
     return convert_pil_to_img(image)
