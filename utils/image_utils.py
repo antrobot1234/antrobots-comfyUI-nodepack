@@ -390,3 +390,17 @@ def create_res(aspect_ratio, base_resolution, compression_factor = 8):
     h = int((((base_resolution**2)*aspect_ratio)**0.5)//compression_factor)*compression_factor
     
     return (w, h)
+def box_blur_mask(mask:torch.Tensor, radius:float) -> torch.Tensor:
+    """
+    Apply a box blur effect to a mask.
+
+    Args:
+        mask (torch.Tensor): The input mask tensor.
+
+    Returns:
+        torch.Tensor: The blurred mask tensor.
+    """
+    pil_mask = convert_img_to_pil(mask)
+    pil_mask = pil_mask.filter(ImageFilter.BoxBlur(radius))
+    mask_out = convert_pil_to_img(pil_mask,True)
+    return mask_out

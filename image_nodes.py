@@ -211,7 +211,21 @@ class FillWithColor:
     CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
     def fill(self, image: torch.Tensor, mask: torch.Tensor, R: int, G: int, B: int) -> tuple[torch.Tensor]:
         return (fill_with_color(image, mask, R, G, B),)
-
+class BoxBlurMask:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "mask": ("MASK",),
+                "radius": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 999999999999999, "step": 0.01})
+            }
+        }
+    RETURN_TYPES = ("MASK",)    
+    RETURN_NAMES = ("mask",)
+    FUNCTION = "blur"
+    CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
+    def blur(self, mask: torch.Tensor, radius: float) -> tuple[torch.Tensor]:
+        return (box_blur_mask(mask, radius),)
 
 
 NODE_CLASS_MAPPINGS.update({"crop": CropImageAndMask,
@@ -220,7 +234,8 @@ NODE_CLASS_MAPPINGS.update({"crop": CropImageAndMask,
                              "composite": AlphaComposite,
                              "preview_mask": PreviewMask,
                              "scale_with_reference": ScaleImageWithReference,
-                             "fill_with_color": FillWithColor})
+                             "fill_with_color": FillWithColor,
+                             "blur": BoxBlurMask})
                 
 NODE_DISPLAY_NAME_MAPPINGS.update({"crop": "Crop Image and Mask",
                                     "scale": "Scale Image to Size",
@@ -228,4 +243,5 @@ NODE_DISPLAY_NAME_MAPPINGS.update({"crop": "Crop Image and Mask",
                                     "composite": "Alpha Composite",
                                     "preview_mask": "Preview Mask",
                                     "scale_with_reference": "Scale Image with Reference",
-                                    "fill_with_color": "Fill with Color"})
+                                    "fill_with_color": "Fill with Color",
+                                    "blur": "Box Blur Mask"})
