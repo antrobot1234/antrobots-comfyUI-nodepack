@@ -138,6 +138,7 @@ def sample_pass(model, seed, steps, cfg, sampler_name, scheduler, positive, nega
         latent_image = encode_VAE(image, vae)
         if mask is not None and not is_mask_empty(mask): latent_image = set_latent_noise_mask(mask, latent_image)
     else:
+        denoise = 1.0
         latent_image = EmptyLatentImage().generate(image.shape[2], image.shape[1])[0]
     latent_image = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent_image, denoise=denoise)[0]
     return decode_VAE(latent_image, vae)
