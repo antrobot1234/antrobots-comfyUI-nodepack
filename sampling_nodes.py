@@ -133,6 +133,37 @@ class KSamplerWithPipes(KSamplerWithRefiner):
         image = decode_VAE(latent, vae_out)
         return (image,)
 
+def sample_pass(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, image, vae, denoise = 1.0, use_image = False, mask: torch.Tensor|None = None) -> torch.Tensor:
+    if use_image:
+        latent_image = encode_VAE(image, model.vae)
+        if mask is not None and not is_mask_empty(mask): latent_image = set_latent_noise_mask(mask, latent_image)
+    else:
+        latent_image = EmptyLatentImage().generate(image.shape[2], image.shape[1])[0]
+    latent_image = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent_image, denoise=denoise)[0]
+    return decode_VAE(latent_image, vae)
+class KsamplerWithPipe(KSampler):
+    @classmethod
+    def INPUT_TYPES(cls):
+        types = super().INPUT_TYPES()
+        types["required"].pop("latent_image")
+        types["required"].pop("model")
+        types["required"].pop("positive")
+        types["required"].pop("negative")
+
+        types["required"]["pipe"] = ("BASIC_PIPE", {})
+        types["required"]["image"] = ("IMAGE", {})
+        types["required"]["use_image"] = ("BOOLEAN", {"default": False})
+        types["optional"] = {}
+        types["optional"]["mask"] = ("MASK", {})
+        return types
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image_out",)
+    def sample(self, pipe, **kwargs) -> tuple[torch.Tensor]:
+        kwargs["model"] = pipe[0]
+        kwargs["positive"] = pipe[3]
+        kwargs["negative"] = pipe[4]
+        kwargs["vae"] = pipe[2]
+        return (sample_pass(**kwargs),)
 
 class calcPercentage:
     @classmethod
@@ -156,3 +187,4 @@ register(KSamplerWithDenoise,"sample","KSampler (Advanced) with Denoise")
 register(KSamplerWithRefiner,"refine","KSampler with Refiner")
 register(calcPercentage,"calc","Percentage of Total")
 register(KSamplerWithPipes,"refine_pipe","KSampler with Pipes")
+register(KsamplerWithPipe,"sample_pipe","KSampler with Pipe")
