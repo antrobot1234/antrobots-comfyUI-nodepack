@@ -227,21 +227,15 @@ class BoxBlurMask:
     def blur(self, mask: torch.Tensor, radius: float) -> tuple[torch.Tensor]:
         return (box_blur_mask(mask, radius),)
 
+def register(node_class: type,class_name : str, display_name : str):
+    NODE_CLASS_MAPPINGS[class_name] = node_class
+    NODE_DISPLAY_NAME_MAPPINGS[class_name] = display_name
 
-NODE_CLASS_MAPPINGS.update({"crop": CropImageAndMask,
-                             "scale": ScaleImageToSize,
-                             "paste": PasteWithMasks,
-                             "composite": AlphaComposite,
-                             "preview_mask": PreviewMask,
-                             "scale_with_reference": ScaleImageWithReference,
-                             "fill_with_color": FillWithColor,
-                             "blur": BoxBlurMask})
-                
-NODE_DISPLAY_NAME_MAPPINGS.update({"crop": "Crop Image and Mask",
-                                    "scale": "Scale Image to Size",
-                                    "paste": "Paste with Masks",
-                                    "composite": "Alpha Composite",
-                                    "preview_mask": "Preview Mask",
-                                    "scale_with_reference": "Scale Image with Reference",
-                                    "fill_with_color": "Fill with Color",
-                                    "blur": "Box Blur Mask"})
+register(CropImageAndMask,"crop","Crop Image and Mask")
+register(ScaleImageToSize,"scale","Scale Image to Size")
+register(PasteWithMasks,"paste","Paste with Masks")
+register(AlphaComposite,"composite","Alpha Composite")
+register(PreviewMask,"preview_mask","Preview Mask")
+register(ScaleImageWithReference,"scale_with_reference","Scale Image with Reference")
+register(FillWithColor,"fill_with_color","Fill with Color")
+register(BoxBlurMask,"blur","Box Blur Mask")
