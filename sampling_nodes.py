@@ -150,8 +150,13 @@ class KsamplerWithPipe(KSampler):
         types["required"].pop("model")
         types["required"].pop("positive")
         types["required"].pop("negative")
+        types["required"].pop("sampler_name")
+        types["required"].pop("scheduler")
+        types["required"].pop("cfg")
+
 
         types["required"]["pipe"] = ("BASIC_PIPE", {})
+        types["required"]["sampler_pipe"] = ("SAMPLER_PIPE", {})
         types["required"]["image"] = ("IMAGE", {})
         types["required"]["use_image"] = ("BOOLEAN", {"default": False})
         types["optional"] = {}
@@ -159,11 +164,16 @@ class KsamplerWithPipe(KSampler):
         return types
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image_out",)
-    def sample(self, pipe, **kwargs) -> tuple[torch.Tensor]:
+    def sample(self, pipe, sampler_pipe, **kwargs) -> tuple[torch.Tensor]:
         kwargs["model"] = pipe[0]
         kwargs["positive"] = pipe[3]
         kwargs["negative"] = pipe[4]
         kwargs["vae"] = pipe[2]
+
+        kwargs["cfg"] = sampler_pipe[0]
+        kwargs["sampler_name"] = sampler_pipe[1]
+        kwargs["scheduler"] = sampler_pipe[2]
+
         return (sample_pass(**kwargs),)
 
 class calcPercentage:

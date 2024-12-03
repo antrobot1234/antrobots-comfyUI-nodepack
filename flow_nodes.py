@@ -1,6 +1,6 @@
 
 from .utils.globals import DIRECTORY_NAME, Any
-from nodes import ConditioningConcat
+from nodes import ConditioningConcat, KSampler
 NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
 GROUP_NAME = "flow-control"
@@ -84,6 +84,22 @@ class OptionalEditPipe:
             else:
                 out.append(n)
         return (tuple(out),)
+class SamplerPipe(KSampler):
+    @classmethod
+    def INPUT_TYPES(cls):
+        types = super().INPUT_TYPES()
+        out = {}
+        out["required"] = {}
+        out["required"]["cfg"] = types["required"]["cfg"]
+        out["required"]["sampler_name"] = types["required"]["sampler_name"]
+        out["required"]["scheduler"] = types["required"]["scheduler"]
+        return out
+
+    RETURN_TYPES = ("SAMPLER_PIPE",)
+    RETURN_NAMES = ("sampler_pipe",)
+    FUNCTION = "sampler_pipe"
+    def sampler_pipe(self, cfg, sampler_name, scheduler):
+        return ((cfg, sampler_name, scheduler),)
 
     
 def register(node_class: type,class_name : str, display_name : str):
@@ -95,3 +111,4 @@ register(Swap, "Swap", "Swap")
 register(OptionalConditioningConcat, "OptionalConditioningConcat", "Op. Conditioning (Concat)")
 register(OptionalBasicPipe, "OptionalBasicPipeInput", "Op. To Basic Pipe")
 register(OptionalEditPipe, "OptionalBasicPipeEdit", "Op. Edit Basic Pipe")
+register(SamplerPipe, "SamplerPipe", "Sampler Pipe")
