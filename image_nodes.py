@@ -226,7 +226,20 @@ class BoxBlurMask:
     CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
     def blur(self, mask: torch.Tensor, radius: float) -> tuple[torch.Tensor]:
         return (box_blur_mask(mask, radius),)
-
+class GetImageSize:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+            }
+        }
+    RETURN_TYPES = ("INT", "INT")    
+    RETURN_NAMES = ("width", "height")
+    FUNCTION = "get_size"
+    CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
+    def get_size(self, image: torch.Tensor) -> tuple[int, int]:
+        return (image.shape[2], image.shape[1])
 def register(node_class: type,class_name : str, display_name : str):
     NODE_CLASS_MAPPINGS[class_name] = node_class
     NODE_DISPLAY_NAME_MAPPINGS[class_name] = display_name
@@ -239,3 +252,4 @@ register(PreviewMask,"preview_mask","Preview Mask")
 register(ScaleImageWithReference,"scale_with_reference","Scale Image with Reference")
 register(FillWithColor,"fill_with_color","Fill with Color")
 register(BoxBlurMask,"blur","Box Blur Mask")
+register(GetImageSize,"get_size","Get Image Size")
