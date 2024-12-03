@@ -135,7 +135,7 @@ class KSamplerWithPipes(KSamplerWithRefiner):
 
 def sample_pass(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, image, vae, denoise = 1.0, use_image = False, mask: torch.Tensor|None = None) -> torch.Tensor:
     if use_image:
-        latent_image = encode_VAE(image, model.vae)
+        latent_image = encode_VAE(image, vae)
         if mask is not None and not is_mask_empty(mask): latent_image = set_latent_noise_mask(mask, latent_image)
     else:
         latent_image = EmptyLatentImage().generate(image.shape[2], image.shape[1])[0]
