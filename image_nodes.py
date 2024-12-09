@@ -202,15 +202,16 @@ class FillWithColor:
                 "mask": ("MASK",),
                 "R": ("INT", {"default": 0, "min": 0, "max": 255, "step": 1, "display": "number"}),
                 "G": ("INT", {"default": 0, "min": 0, "max": 255, "step": 1, "display": "number"}),
-                "B": ("INT", {"default": 0, "min": 0, "max": 255, "step": 1, "display": "number"})
+                "B": ("INT", {"default": 0, "min": 0, "max": 255, "step": 1, "display": "number"}),
+                "A": ("INT", {"default": 255, "min": 0, "max": 255, "step": 1, "display": "number"})
             }
         }
     RETURN_TYPES = ("IMAGE",)    
     RETURN_NAMES = ("image",)
     FUNCTION = "fill"
     CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
-    def fill(self, image: torch.Tensor, mask: torch.Tensor, R: int, G: int, B: int) -> tuple[torch.Tensor]:
-        return (fill_with_color(image, mask, R, G, B),)
+    def fill(self, image: torch.Tensor, mask: torch.Tensor, R: int, G: int, B: int, A: int) -> tuple[torch.Tensor]:
+        return (fill_with_color(image, mask, R, G, B, A),)
 class BoxBlurMask:
     @classmethod
     def INPUT_TYPES(cls):
