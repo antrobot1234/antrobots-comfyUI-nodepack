@@ -1,6 +1,6 @@
 
 from .utils.globals import DIRECTORY_NAME, Any
-from nodes import ConditioningConcat, KSampler
+from nodes import ConditioningConcat, KSampler, CLIPTextEncode
 NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
 GROUP_NAME = "flow-control"
@@ -34,7 +34,7 @@ class OptionalConditioningConcat(ConditioningConcat):
         }
     def concat(self, conditioning_to = None, conditioning_from = None) -> tuple:
         if conditioning_from is None and conditioning_to is None:
-            raise Exception("conditioning_to and conditioning_from cannot both be None")
+            return (None,)
         if conditioning_from is None:
             return (conditioning_to,)
         if conditioning_to is None:
@@ -77,13 +77,71 @@ class OptionalEditPipe:
     def pipe(self, pipe, model = None, clip = None, vae = None, positive = None, negative = None):
         #insert any new parameters to the pipe tuple in the correct position
         out = []
-        inp = [model, clip, vae, positive, negative]
+        inp = [model, clip, vae, positive, negative] #this is the order for all basic pipes
         for i, n in enumerate(pipe):
             if inp[i] is not None:
                 out.append(inp[i])
             else:
                 out.append(n)
         return (tuple(out),)
+class ConcatConditioningPipe:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required":{
+                "pipe":("BASIC_PIPE",),
+                },
+            "optional":{
+                "positive":("CONDITIONING",),
+                "negative":("CONDITIONING",),
+                "prepend":("BOOLEAN",{"default":False,"tooltip":"prepend the provided conditioning values to the pipe instead of appending them"})
+                }
+        }
+    RETURN_TYPES = ("BASIC_PIPE",)
+    RETURN_NAMES = ("pipe",)
+    FUNCTION = "concat"
+    DESCRIPTION = "Concatenates the provided conditioning values to the pipe, or prepends them if prepend is set to true."
+    def concat(self, pipe, prepend = False, positive = None, negative = None):
+        concatFunc = OptionalConditioningConcat().concat
+        pipePositive = pipe[3]
+        pipeNegative = pipe[4]
+        
+        #handle if any of the provided conditioning values do not exist
+        positiveOut, negativeOut = None, None
+        if pipePositive is None: positiveOut = positive
+        elif positive is None: positiveOut = pipePositive
+        
+        if pipeNegative is None: negativeOut = negative
+        elif negative is None: negativeOut = pipeNegative
+
+        if prepend:
+            conditioningTo = positive, negative
+            conditioningFrom = pipePositive, pipeNegative
+        else:
+            conditioningTo = pipePositive, pipeNegative
+            conditioningFrom = positive, negative
+
+        #If the values are already defined, just use them. else, concat the conditioning values and return them
+        positiveOut = positiveOut or concatFunc(conditioningTo[0], conditioningFrom[0])[0]
+        negativeOut = negativeOut or concatFunc(conditioningTo[1], conditioningFrom[1])[0]
+        return ((pipe[0], pipe[1], pipe[2], positiveOut, negativeOut),)
+
+class EncodeConditioningPipe(ConcatConditioningPipe):
+    @classmethod
+    def INPUT_TYPES(cls):
+        types = super().INPUT_TYPES()
+        types["optional"]['positive'] = ("STRING",{"multiline":True,"dynamicPrompts":True,"tooltip":"positive text to be encoded into conditioning"})
+        types["optional"]['negative'] = ("STRING",{"multiline":True,"dynamicPrompts":True,"tooltip":"negative text to be encoded into conditioning"})
+        return types
+    def concat(self, pipe, prepend = False, positive = "", negative = ""):
+        clip = pipe[1]
+        encodeFunc = CLIPTextEncode().encode
+        if positive == "": positive = None
+        else: positive = encodeFunc(clip,positive)[0]
+        if negative == "": negative = None
+        else: negative = encodeFunc(clip,negative)[0]
+        return super().concat(pipe, prepend, positive, negative)
+
 class SamplerPipe(KSampler):
     @classmethod
     def INPUT_TYPES(cls):
@@ -112,3 +170,5 @@ register(OptionalConditioningConcat, "OptionalConditioningConcat", "Op. Conditio
 register(OptionalBasicPipe, "OptionalBasicPipeInput", "Op. To Basic Pipe")
 register(OptionalEditPipe, "OptionalBasicPipeEdit", "Op. Edit Basic Pipe")
 register(SamplerPipe, "SamplerPipe", "Sampler Pipe")
+register(ConcatConditioningPipe, "ConcatConditioningPipe", "Concat Conditioning (PIPE)")
+register(EncodeConditioningPipe, "EncodeConditioningPipe", "Encode Conditioning (PIPE)")
