@@ -172,10 +172,10 @@ class LoadCheckpointToPipe(CheckpointLoaderSimple):
         types["optional"]["negative"] = ("CONDITIONING",)
         return types
     RETURN_TYPES = ("BASIC_PIPE","STRING")
-    RETURN_NAMES = ("pipe","ckpt_name")
+    RETURN_NAMES = ("pipe","name_string")
     DESCRIPTION = "Loads a diffusion model checkpoint directly onto a basic pipe. If positive or negative are not provided, they will be None in the pipe."
     OUTPUT_TOOLTIPS = ("The pipe containing the diffusion model, CLIP model, VAE model, positive and negative conditionings.", "The name of the checkpoint file.")
-    def load_checkpoint(ckpt_name, positive = None, negative = None):
+    def load_checkpoint(self, ckpt_name, positive = None, negative = None):
 
         model, clip, vae = super().load_checkpoint(ckpt_name)
 
@@ -188,7 +188,9 @@ class loadCheckpointWithPrompt(LoadCheckpointToPipe):
         types["optional"]["negative"] = ("STRING",{"multiline":True,"dynamicPrompts":True,"tooltip":"negative prompt to be encoded into conditioning"})
         return types
     DESCRIPTION = "Loads a diffusion model checkpoint directly onto a basic pipe, with the prompts encoded as conditionings."
-    def load_checkpoint(ckpt_name, positive = "", negative = ""):
+    def load_checkpoint(self, ckpt_name, positive = None, negative = None):
+
+
         pipe, ckpt_name = super().load_checkpoint(ckpt_name, None, None)
         clip = get_pipe_value(pipe, "clip")
         positive = ENCODE_FUNC(clip,positive)[0]
