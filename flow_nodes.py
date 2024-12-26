@@ -1,6 +1,8 @@
 
 from .utils.globals import DIRECTORY_NAME, Any
-from nodes import ConditioningConcat, KSampler, CLIPTextEncode
+from .utils.dict_utils import get_pipe_value
+from nodes import ConditioningConcat, KSampler, CLIPTextEncode, CheckpointLoaderSimple
+
 NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
 GROUP_NAME = "flow-control"
@@ -40,6 +42,9 @@ class OptionalConditioningConcat(ConditioningConcat):
         if conditioning_to is None:
             return (conditioning_from,)
         return super().concat(conditioning_to, conditioning_from)
+    
+ENCODE_FUNC = CLIPTextEncode().encode
+CONCAT_FUNC = OptionalConditioningConcat().concat
 class OptionalBasicPipe:
     @classmethod
     def INPUT_TYPES(cls):
@@ -102,9 +107,8 @@ class ConcatConditioningPipe:
     FUNCTION = "concat"
     DESCRIPTION = "Concatenates the provided conditioning values to the pipe, or prepends them if prepend is set to true."
     def concat(self, pipe, prepend = False, positive = None, negative = None):
-        concatFunc = OptionalConditioningConcat().concat
-        pipePositive = pipe[3]
-        pipeNegative = pipe[4]
+        pipePositive = get_pipe_value(pipe, "positive")
+        pipeNegative = get_pipe_value(pipe, "negative")
         
         #handle if any of the provided conditioning values do not exist
         positiveOut, negativeOut = None, None
@@ -122,8 +126,8 @@ class ConcatConditioningPipe:
             conditioningFrom = positive, negative
 
         #If the values are already defined, just use them. else, concat the conditioning values and return them
-        positiveOut = positiveOut or concatFunc(conditioningTo[0], conditioningFrom[0])[0]
-        negativeOut = negativeOut or concatFunc(conditioningTo[1], conditioningFrom[1])[0]
+        positiveOut = positiveOut or CONCAT_FUNC(conditioningTo[0], conditioningFrom[0])[0]
+        negativeOut = negativeOut or CONCAT_FUNC(conditioningTo[1], conditioningFrom[1])[0]
         return ((pipe[0], pipe[1], pipe[2], positiveOut, negativeOut),)
 
 class EncodeConditioningPipe(ConcatConditioningPipe):
@@ -135,11 +139,10 @@ class EncodeConditioningPipe(ConcatConditioningPipe):
         return types
     def concat(self, pipe, prepend = False, positive = "", negative = ""):
         clip = pipe[1]
-        encodeFunc = CLIPTextEncode().encode
         if positive == "": positive = None
-        else: positive = encodeFunc(clip,positive)[0]
+        else: positive = ENCODE_FUNC(clip,positive)[0]
         if negative == "": negative = None
-        else: negative = encodeFunc(clip,negative)[0]
+        else: negative = ENCODE_FUNC(clip,negative)[0]
         return super().concat(pipe, prepend, positive, negative)
 
 class SamplerPipe(KSampler):
@@ -159,7 +162,39 @@ class SamplerPipe(KSampler):
     def sampler_pipe(self, cfg, sampler_name, scheduler):
         return ((cfg, sampler_name, scheduler),)
 
-    
+
+class LoadCheckpointToPipe(CheckpointLoaderSimple):
+    @classmethod
+    def INPUT_TYPES(cls):
+        types = super().INPUT_TYPES()
+        types.setdefault("optional", {})
+        types["optional"]["positive"] = ("CONDITIONING",)
+        types["optional"]["negative"] = ("CONDITIONING",)
+        return types
+    RETURN_TYPES = ("BASIC_PIPE","STRING")
+    RETURN_NAMES = ("pipe","ckpt_name")
+    DESCRIPTION = "Loads a diffusion model checkpoint directly onto a basic pipe. If positive or negative are not provided, they will be None in the pipe."
+    OUTPUT_TOOLTIPS = ("The pipe containing the diffusion model, CLIP model, VAE model, positive and negative conditionings.", "The name of the checkpoint file.")
+    def load_checkpoint(ckpt_name, positive = None, negative = None):
+
+        model, clip, vae = super().load_checkpoint(ckpt_name)
+
+        return ((model, clip, vae, positive, negative), ckpt_name)
+class loadCheckpointWithPrompt(LoadCheckpointToPipe):
+    @classmethod
+    def INPUT_TYPES(cls):
+        types = super().INPUT_TYPES()
+        types["optional"]["positive"] = ("STRING",{"multiline":True,"dynamicPrompts":True,"tooltip":"positive prompt to be encoded into conditioning"})
+        types["optional"]["negative"] = ("STRING",{"multiline":True,"dynamicPrompts":True,"tooltip":"negative prompt to be encoded into conditioning"})
+        return types
+    DESCRIPTION = "Loads a diffusion model checkpoint directly onto a basic pipe, with the prompts encoded as conditionings."
+    def load_checkpoint(ckpt_name, positive = "", negative = ""):
+        pipe, ckpt_name = super().load_checkpoint(ckpt_name, None, None)
+        clip = get_pipe_value(pipe, "clip")
+        positive = ENCODE_FUNC(clip,positive)[0]
+        negative = ENCODE_FUNC(clip,negative)[0]
+        return ((pipe[0], pipe[1], pipe[2], positive, negative), ckpt_name)
+
 def register(node_class: type,class_name : str, display_name : str):
     NODE_CLASS_MAPPINGS[class_name] = node_class
     NODE_DISPLAY_NAME_MAPPINGS[class_name] = display_name
@@ -172,3 +207,5 @@ register(OptionalEditPipe, "OptionalBasicPipeEdit", "Op. Edit Basic Pipe")
 register(SamplerPipe, "SamplerPipe", "Sampler Pipe")
 register(ConcatConditioningPipe, "ConcatConditioningPipe", "Concat Conditioning (PIPE)")
 register(EncodeConditioningPipe, "EncodeConditioningPipe", "Encode Conditioning (PIPE)")
+register(LoadCheckpointToPipe, "LoadCheckpointToPipe", "Load Checkpoint (PIPE)")
+register(loadCheckpointWithPrompt, "LoadCheckpointWithPrompt", "Load Checkpoint With Prompt (PIPE)")
