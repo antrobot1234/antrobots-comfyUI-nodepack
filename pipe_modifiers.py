@@ -14,3 +14,6 @@ def register(node_class: type, class_name: str, display_name: str):
     node_class.CATEGORY = DIRECTORY_NAME + '/' + GROUP_NAME
 
     return node_class
+
+def pipe_modifier_class_constructor(class_name, pretty_name, type_str):
+    pass # i don't want to do this right now
