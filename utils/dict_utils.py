@@ -46,3 +46,11 @@ class EntryDict(UserDict):
             #try to cast entry to reference type
             else: entry.cast_value(reference.typedef)
         return entry
+
+def get_pipe_value(pipe, name):
+    if name == "model": return pipe[0]
+    if name == "clip": return pipe[1]
+    if name == "vae": return pipe[2]
+    if name == "positive": return pipe[3]
+    if name == "negative": return pipe[4]
+    return None
