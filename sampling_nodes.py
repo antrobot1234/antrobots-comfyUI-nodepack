@@ -133,15 +133,20 @@ class KSamplerWithPipes(KSamplerWithRefiner):
         image = decode_VAE(latent, vae_out)
         return (image,)
 
-def sample_pass(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, image, vae, denoise = 1.0, use_image = False, mask: torch.Tensor|None = None) -> torch.Tensor:
-    if use_image:
+def sample_pass(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, image, vae, denoise = 1.0, latent_opt: torch.Tensor|None = None, use_image = False, return_image = True, mask: torch.Tensor|None = None):
+    if latent_opt is not None:
+        latent_image = latent_opt
+    elif use_image:
         latent_image = encode_VAE(image, vae)
         if mask is not None and not is_mask_empty(mask): latent_image = set_latent_noise_mask(mask, latent_image)
     else:
         denoise = 1.0
         latent_image = EmptyLatentImage().generate(image.shape[2], image.shape[1])[0]
     latent_image = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent_image, denoise=denoise)[0]
-    return decode_VAE(latent_image, vae)
+    if return_image:
+        return decode_VAE(latent_image, vae), latent_image
+    else:
+        return image, latent_image
 class KsamplerWithPipe(KSampler):
     @classmethod
     def INPUT_TYPES(cls):
@@ -158,12 +163,17 @@ class KsamplerWithPipe(KSampler):
         types["required"]["pipe"] = ("BASIC_PIPE", {})
         types["required"]["sampler_pipe"] = ("SAMPLER_PIPE", {})
         types["required"]["image"] = ("IMAGE", {})
-        types["required"]["use_image"] = ("BOOLEAN", {"default": False})
         types["optional"] = {}
+        types["optional"]["latent_opt"] = ("LATENT", {"default": None, "tooltip":"latent image to use. Only provide if you do not want to use the input image."})
+        types["optional"]["use_image"] = ("BOOLEAN", {"default": False, "tooltip":"if false, a new latent image will be created based off of the dimensions of the input image"})
+        types["optional"]["return_image"] = ("BOOLEAN", {"default": True, "tooltip":"if false, the latent will not be decoded. The input image will be returned as a placeholder."})
+
         types["optional"]["mask"] = ("MASK", {})
+        
         return types
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("image_out",)
+    RETURN_TYPES = ("IMAGE","LATENT","VAE")
+    RETURN_NAMES = ("image out","latent","vae")
+    OUTPUT_TOOLTIPS = ("The decoded image.", "The latent image.", "The VAE to decode the latent if desired.")
     def sample(self, pipe, sampler_pipe, **kwargs) -> tuple[torch.Tensor]:
         kwargs["model"] = pipe[0]
         kwargs["positive"] = pipe[3]
@@ -174,7 +184,8 @@ class KsamplerWithPipe(KSampler):
         kwargs["sampler_name"] = sampler_pipe[1]
         kwargs["scheduler"] = sampler_pipe[2]
 
-        return (sample_pass(**kwargs),)
+        image, latent = sample_pass(**kwargs)
+        return (image, latent, kwargs["vae"])
 
 class calcPercentage:
     @classmethod
