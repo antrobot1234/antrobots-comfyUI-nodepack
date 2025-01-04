@@ -133,21 +133,27 @@ class KSamplerWithPipes(KSamplerWithRefiner):
         image = decode_VAE(latent, vae_out)
         return (image,)
 
-def sample_pass(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, image, vae, denoise = 1.0, latent_opt: torch.Tensor|None = None, use_image = False, return_image = True, mask: torch.Tensor|None = None):
+def sample_pass(**kwargs):
+    latent_opt = kwargs.pop("latent_opt", None)
+    use_image = kwargs.pop("use_image", False)
+    return_image = kwargs.pop("return_image", True)
+    mask = kwargs.pop("mask", None)
+    image = kwargs.pop("image", None)
+    vae = kwargs.pop("vae", None)
     if latent_opt is not None:
         latent_image = latent_opt
     elif use_image:
         latent_image = encode_VAE(image, vae)
         if mask is not None and not is_mask_empty(mask): latent_image = set_latent_noise_mask(mask, latent_image)
     else:
-        denoise = 1.0
+        kwargs["denoise"] = 1.0
         latent_image = EmptyLatentImage().generate(image.shape[2], image.shape[1])[0]
-    latent_image = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent_image, denoise=denoise)[0]
+    latent_image = common_ksampler(latent=latent_image,**kwargs)[0]
     if return_image:
         return decode_VAE(latent_image, vae), latent_image
     else:
         return image, latent_image
-class KsamplerWithPipe(KSampler):
+class KSamplerWithPipe(KSampler):
     @classmethod
     def INPUT_TYPES(cls):
         types = super().INPUT_TYPES()
@@ -183,9 +189,28 @@ class KsamplerWithPipe(KSampler):
         kwargs["cfg"] = sampler_pipe[0]
         kwargs["sampler_name"] = sampler_pipe[1]
         kwargs["scheduler"] = sampler_pipe[2]
+        kwargs["disable_noise"] = not kwargs.pop("add_noise", True)
 
         image, latent = sample_pass(**kwargs)
         return (image, latent, kwargs["vae"])
+class KSamplerWithPipeAdvanced(KSamplerWithPipe):
+    @classmethod
+    def INPUT_TYPES(cls):
+        types = super().INPUT_TYPES()
+        types["required"].pop("denoise")
+        
+        use_image = types["optional"].pop("use_image")
+        return_image = types["optional"].pop("return_image")
+        
+        types["optional"]["start_step"] = ("INT", {"default": 0, "min": 0, "max": 10000})
+        types["optional"]["last_step"] = ("INT", {"default": 10000, "min": 0, "max": 10000})
+        types["optional"]["add_noise"] = ("BOOLEAN", {"default": True})
+        types["optional"]["force_full_denoise"] = ("BOOLEAN", {"default": False})
+        #keep these two parameters at the bottom of the list
+        types["optional"]["use_image"] = use_image
+        types["optional"]["return_image"] = return_image
+        return types
+    
 
 class calcPercentage:
     @classmethod
@@ -209,4 +234,5 @@ register(KSamplerWithDenoise,"sample","KSampler (Advanced) with Denoise")
 register(KSamplerWithRefiner,"refine","KSampler with Refiner")
 register(calcPercentage,"calc","Percentage of Total")
 register(KSamplerWithPipes,"refine_pipe","KSampler with Pipes")
-register(KsamplerWithPipe,"sample_pipe","KSampler with Pipe")
+register(KSamplerWithPipe,"sample_pipe","KSampler with Pipe")
+register(KSamplerWithPipeAdvanced,"sample_pipe_advanced","KSampler with Pipe (Advanced)")
