@@ -1,0 +1,14 @@
+[project]
+name = "antrobots-comfyui-nodepack"
+description = "A small node pack containing various things I felt like ought to be in base comfy-UI. Currently includes Some image handling nodes to help with inpainting, a version of KSampler (advanced) that allows for denoise, and a node that can swap it's inputs. Remember to make an issue if you experience any bugs or errors!"
+version = "1.0.0"
+license = "LICENSE"
+
+[project.urls]
+Repository = "https://github.com/antrobot1234/antrobots-comfyUI-nodepack"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "antrobots-comfyUI-nodepack"
+Icon = ""
