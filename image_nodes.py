@@ -303,11 +303,14 @@ class MergeImageGrid:
 
         width = 0
         height = 0
+        temp_width = 0
+        temp_height = 0
+        #get average image size
         for image in images:
-            width += image.shape[2]
-            height += image.shape[1]
-        width = width // columns
-        height = height // rows
+            temp_width += image.shape[2]
+            temp_height += image.shape[1]
+        width = temp_width // len(images) * columns
+        height = temp_height // len(images) * rows
         image_out = empty_image(height, width)
         for i in range(rows):
             for j in range(columns):
