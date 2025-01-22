@@ -27,14 +27,14 @@ def dialate_mask(mask: torch.Tensor, kernel_size: int = 3) -> torch.Tensor:
     #convert mask back to torch tensor
     mask = convert_pil_to_img(mask_img,True)
     return mask
-def empty_image() -> torch.Tensor:
+def empty_image(height: int, width: int) -> torch.Tensor:
     """
     Create an empty image tensor.
 
     Returns:
-        torch.Tensor: An empty image tensor with shape (1, 16, 16, 3).
+        torch.Tensor: An empty image tensor with shape (1, height, width, 3): batch, height, width, channels
     """
-    return torch.zeros((1, 16, 16, 3))
+    return torch.zeros((1, height, width, 3))
 def empty_mask(do_active: bool = False) -> torch.Tensor:
     """
     Create an empty mask tensor. if do_active is True, the mask will be full (white), otherwise it will be empty (black).
@@ -298,6 +298,8 @@ def mask_to_box(mask:torch.Tensor) -> torch.Tensor:
     #merge boxes
     box = merge_bounding_boxes(boxes)
     return box
+def create_box(x1, y1, x2, y2):
+    return torch.Tensor([x1, y1, x2, y2]).to(torch.int32)
 def convert_img_to_pil(image:torch.Tensor) -> Image.Image:
     """
     Convert an image tensor to a PIL image.
@@ -327,7 +329,7 @@ def convert_pil_to_img(image:Image.Image,is_mask:bool = False) -> torch.Tensor:
         tensor = tensor.unsqueeze(0)
         tensor = convert_img_to_bHWc(tensor)
     return tensor
-def alpha_composite(image_source:torch.Tensor, mask_source:torch.Tensor, image_dest:torch.Tensor, mask_dest: Optional[torch.Tensor], dest = (0,0), source = (0,0)) -> torch.Tensor:
+def alpha_composite(image_source:torch.Tensor, mask_source: Optional[torch.Tensor] = None, image_dest:torch.Tensor = None, mask_dest: Optional[torch.Tensor] = None, dest = (0,0), source = (0,0)) -> torch.Tensor:
     #convert to numpy if needed
     if(type(dest) == torch.Tensor): dest = tuple(dest.tolist())
     if(type(source) == torch.Tensor): source = tuple(source.tolist())        

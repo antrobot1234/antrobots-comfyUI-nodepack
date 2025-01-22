@@ -245,6 +245,79 @@ def register(node_class: type,class_name : str, display_name : str):
     NODE_CLASS_MAPPINGS[class_name] = node_class
     NODE_DISPLAY_NAME_MAPPINGS[class_name] = display_name
 
+class SplitImageToGrid:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "columns": ("INT", {"default": 1, "min": 1, "max": MAXSIZE, "step": 1, "display": "number"}),
+                "rows": ("INT", {"default": 1, "min": 1, "max": MAXSIZE, "step": 1, "display": "number"}),
+            }
+        }
+    RETURN_TYPES = ("IMAGE",)    
+    OUTPUT_IS_LIST = (True,)
+    RETURN_NAMES = ("image",)
+    FUNCTION = "split"
+    CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
+    def split(self, image: torch.Tensor, columns: int, rows: int) -> tuple[torch.Tensor]:
+        image_list = []
+        height = image.shape[1]
+        width = image.shape[2]
+
+        crop_width = width // columns
+        crop_height = height // rows
+        for i in range(rows):
+            for j in range(columns):
+                #x1, y1, x2, y2
+                x1 = j * crop_width
+                y1 = i * crop_height
+                x2 = x1 + crop_width
+                y2 = y1 + crop_height
+                box = create_box(x1, y1, x2, y2)
+                image_list.append(crop_with_box(image, box))
+        return (image_list,)
+class MergeImageGrid:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "images": ("IMAGE",),
+                "columns": ("INT", {"default": 1, "min": 1, "max": MAXSIZE, "step": 1, "display": "number"}),
+                "rows": ("INT", {"default": 1, "min": 1, "max": MAXSIZE, "step": 1, "display": "number"}),
+            }
+        }
+    RETURN_TYPES = ("IMAGE",)    
+    RETURN_NAMES = ("image",)
+    INPUT_IS_LIST = True
+    FUNCTION = "merge"
+    CATEGORY = DIRECTORY_NAME+'/'+GROUP_NAME
+    def merge(self, images: list[torch.Tensor], columns: int, rows: int) -> tuple[torch.Tensor]:
+        #since everything is interpreted as a list, we need to get the first element of non-list items
+        columns = columns[0]
+        rows = rows[0]
+        
+        #check to see if there are enough images to fill the grid
+        if len(images) < rows * columns:
+            raise Exception("Not enough images to fill the grid")
+
+        width = 0
+        height = 0
+        for image in images:
+            width += image.shape[2]
+            height += image.shape[1]
+        width = width // columns
+        height = height // rows
+        image_out = empty_image(height, width)
+        for i in range(rows):
+            for j in range(columns):
+                image = images[i * columns + j]
+                x1 = j * image.shape[2]
+                y1 = i * image.shape[1]
+                image_out = alpha_composite(image, None, image_out, None, (x1, y1))
+        return (image_out,)
+                
+
 register(CropImageAndMask,"crop","Crop Image and Mask")
 register(ScaleImageToSize,"scale","Scale Image to Size")
 register(PasteWithMasks,"paste","Paste with Masks")
@@ -254,3 +327,6 @@ register(ScaleImageWithReference,"scale_with_reference","Scale Image with Refere
 register(FillWithColor,"fill_with_color","Fill with Color")
 register(BoxBlurMask,"blur","Box Blur Mask")
 register(GetImageSize,"get_size","Get Image Size")
+
+register(SplitImageToGrid,"split","Split Image Grid")
+register(MergeImageGrid,"merge","Merge Image Grid")
