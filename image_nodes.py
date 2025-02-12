@@ -147,9 +147,6 @@ class PasteWithMasks:
         #scale source image to dest mask
         image_source = scale_to_box(image_source, box, interp_mode)
         mask_source = scale_to_box(mask_source, box, interp_mode)
-
-        #invert mask_dest
-        mask_dest = 1 - mask_dest
         #paste source image onto dest image
         result_image = alpha_composite(image_source, mask_source, image_dest, None, box[0:2])
         
