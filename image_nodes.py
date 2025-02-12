@@ -136,12 +136,26 @@ class PasteWithMasks:
             mask_source = scale_to_image(empty_mask(True), image_dest, interp_mode)
         if is_mask_empty(mask_dest): mask_dest = empty_mask(True)
         #scale mask to image
+        mask_source = scale_to_image(mask_source, image_source, interp_mode)
+        mask_dest = scale_to_image(mask_dest, image_dest, interp_mode)
+        #convert to boxes
         box = mask_to_box(mask_dest)
         source_box = mask_to_box(mask_source)
+        #crop source image to mask
+        image_source = crop_with_box(image_source, source_box)
+        mask_source = crop_with_box(mask_source, source_box)
+        #scale source image to dest mask
+        image_source = scale_to_box(image_source, box, interp_mode)
+        mask_source = scale_to_box(mask_source, box, interp_mode)
+
         #invert mask_dest
         mask_dest = 1 - mask_dest
-        image_source = scale_to_image(image_source, mask_source, interp_mode)
-        result_image = alpha_composite(image_source, mask_source, image_dest, None, box[0:2], source_box[0:2])
+        #paste source image onto dest image
+        result_image = alpha_composite(image_source, mask_source, image_dest, None, box[0:2])
+        
+        #invert mask_dest
+        #mask_dest = 1 - mask_dest
+        #result_image = alpha_composite(image_source, mask_source, image_dest, None, box[0:2], source_box[0:2])
         return (result_image,)
 class AlphaComposite:
     @classmethod
