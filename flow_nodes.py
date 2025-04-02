@@ -89,6 +89,35 @@ class OptionalEditPipe:
             else:
                 out.append(n)
         return (tuple(out),)
+    
+class BusPipe:
+    #a pipe node that returns allows for input and output on the same node
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "optional":{
+                "pipe":("BASIC_PIPE",),
+                "model":("MODEL",),
+                "clip":("CLIP",),
+                "vae":("VAE",),
+                "positive":("CONDITIONING",),
+                "negative":("CONDITIONING",)
+                }
+        }
+    RETURN_TYPES = ("BASIC_PIPE","MODEL","CLIP","VAE","CONDITIONING","CONDITIONING")
+    RETURN_NAMES = ("pipe","model","clip","vae","positive","negative")
+    FUNCTION = "pipe"
+    DESCRIPTION = "A pipe node that returns allows for input and output on the same node"
+    OUTPUT_TOOLTIPS = ("edited pipe", "model", "clip", "vae", "positive", "negative")
+    def pipe(self, pipe = None, model = None, clip = None, vae = None, positive = None, negative = None):
+        if pipe is None: pipe = (None, None, None, None, None)
+        model_out = model or get_pipe_value(pipe, "model")
+        clip_out = clip or get_pipe_value(pipe, "clip")
+        vae_out = vae or get_pipe_value(pipe, "vae")
+        positive_out = positive or get_pipe_value(pipe, "positive")
+        negative_out = negative or get_pipe_value(pipe, "negative")
+        pipe_out = (model_out, clip_out, vae_out, positive_out, negative_out)
+        return (pipe_out, model_out, clip_out, vae_out, positive_out, negative_out)
 class ConcatConditioningPipe:
     @classmethod
     def INPUT_TYPES(cls):
@@ -211,3 +240,4 @@ register(ConcatConditioningPipe, "ConcatConditioningPipe", "Concat Conditioning 
 register(EncodeConditioningPipe, "EncodeConditioningPipe", "Encode Conditioning (PIPE)")
 register(LoadCheckpointToPipe, "LoadCheckpointToPipe", "Load Checkpoint (PIPE)")
 register(loadCheckpointWithPrompt, "LoadCheckpointWithPrompt", "Load Checkpoint With Prompt (PIPE)")
+register(BusPipe, "BusPipe", "Bus Pipe")
